@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attanasio's Army — League Table</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green:#00ff87; --gold:#ffd700; --silver:#c0c0c0; --bronze:#cd7f32;
+  --red:#ff4444; --bg:#0d0f14; --bg2:#13161e; --bg3:#1a1e28; --bg4:#1f2433;
+  --border:#2a2f3f; --text:#e8ecf4; --muted:#7a8499; --card-radius:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font-size:14px;min-height:100vh;}
+.header{background:var(--bg2);border-bottom:2px solid var(--green);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;flex-wrap:wrap;}
+.header-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;letter-spacing:1px;color:var(--green);text-transform:uppercase;}
+.header-title span{color:var(--text);opacity:.5;font-weight:400;font-size:14px;margin-left:10px;letter-spacing:0;text-transform:none;}
+.header-right{display:flex;align-items:center;gap:16px;}
+.updated-badge{font-size:11px;color:var(--muted);background:var(--bg3);padding:4px 10px;border-radius:20px;border:1px solid var(--border);}
+.admin-link{font-size:11px;color:var(--muted);text-decoration:none;border:1px solid var(--border);padding:4px 10px;border-radius:20px;transition:all .2s;}
+.admin-link:hover{color:var(--green);border-color:var(--green);}
+.tabs{display:flex;gap:2px;padding:16px 24px 0;border-bottom:1px solid var(--border);background:var(--bg2);}
+.tab{padding:10px 20px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;transition:color .2s,border-color .2s;margin-bottom:-1px;background:none;border-left:none;border-right:none;border-top:none;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--green);border-bottom-color:var(--green);}
+.main{padding:20px 24px;max-width:1200px;margin:0 auto;}
+.panel{display:none;}.panel.active{display:block;}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--card-radius);padding:16px 18px;}
+.stat-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;}
+.stat-value{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;color:var(--text);line-height:1;}
+.stat-value.green{color:var(--green);}.stat-value.gold{color:var(--gold);}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+.section-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.league-table{background:var(--bg2);border:1px solid var(--border);border-radius:var(--card-radius);overflow:hidden;margin-bottom:20px;}
+.table-header{display:grid;grid-template-columns:40px 1fr 90px 90px 50px 130px;padding:10px 16px;background:var(--bg3);border-bottom:1px solid var(--border);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-weight:600;}
+.table-row{display:grid;grid-template-columns:40px 1fr 90px 90px 50px 130px;padding:11px 16px;border-bottom:1px solid var(--border);align-items:center;transition:background .15s;}
+.table-row:last-child{border-bottom:none;}
+.table-row:hover{background:var(--bg3);}
+.table-row.pos-1{background:rgba(255,215,0,.06);}
+.table-row.pos-2{background:rgba(192,192,192,.04);}
+.table-row.pos-3{background:rgba(205,127,50,.04);}
+.table-row.golden-boot{border-left:3px solid var(--gold);}
+.pos-badge{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:var(--bg4);color:var(--muted);}
+.pos-badge.p1{background:var(--gold);color:#000;}
+.pos-badge.p2{background:var(--silver);color:#000;}
+.pos-badge.p3{background:var(--bronze);color:#fff;}
+.manager-info{min-width:0;}
+.team-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.manager-name{font-size:11px;color:var(--muted);margin-top:1px;}
+.pts-cell{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;color:var(--text);}
+.pts-cell.leader{color:var(--green);}
+.gw-cell{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:15px;color:var(--muted);}
+.gw-cell.top-gw{color:var(--gold);}
+.subs-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
+.subs-paid{background:var(--green);}.subs-unpaid{background:var(--red);}
+.prize-badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:10px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
+.prize-winner{background:rgba(255,215,0,.15);color:var(--gold);border:1px solid rgba(255,215,0,.3);}
+.prize-second{background:rgba(192,192,192,.12);color:var(--silver);border:1px solid rgba(192,192,192,.25);}
+.prize-third{background:rgba(205,127,50,.12);color:var(--bronze);border:1px solid rgba(205,127,50,.25);}
+.prize-fourth{background:rgba(100,180,255,.1);color:#88bbff;border:1px solid rgba(100,180,255,.2);}
+.prize-cup{background:rgba(0,255,135,.1);color:var(--green);border:1px solid rgba(0,255,135,.2);}
+.prize-boot{background:rgba(255,215,0,.1);color:var(--gold);border:1px solid rgba(255,215,0,.2);}
+.bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--card-radius);padding:18px;}
+.card-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.prize-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;gap:10px;}
+.prize-row:last-child{border-bottom:none;}
+.prize-name{color:var(--muted);flex-shrink:0;}
+.prize-mid{flex:1;text-align:right;font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.prize-amount{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:var(--text);min-width:50px;text-align:right;}
+.finance-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.finance-row:last-child{border-bottom:none;}
+.finance-label{color:var(--muted);}
+.finance-value{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;}
+.subs-section{margin-bottom:20px;}
+.subs-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.subs-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;}
+.subs-card.paid{border-left:3px solid var(--green);}
+.subs-card.unpaid{border-left:3px solid var(--red);}
+.subs-team{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.subs-person{font-size:11px;color:var(--muted);margin-top:2px;}
+.subs-date{font-size:10px;margin-top:4px;font-family:'Barlow Condensed',sans-serif;}
+.subs-date.paid{color:var(--green);}.subs-date.unpaid{color:var(--red);}
+.watchlist-filters{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.filter-btn{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg2);color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+.filter-btn:hover{border-color:var(--green);color:var(--text);}
+.filter-btn.active{background:var(--green);color:#000;border-color:var(--green);}
+.watchlist-table{background:var(--bg2);border:1px solid var(--border);border-radius:var(--card-radius);overflow:hidden;overflow-x:auto;}
+.wl-header{display:grid;grid-template-columns:140px 55px 85px 60px 55px 55px 50px 50px 50px 50px repeat(5,36px);padding:10px 14px;background:var(--bg3);border-bottom:1px solid var(--border);font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-weight:600;gap:4px;min-width:900px;}
+.wl-row{display:grid;grid-template-columns:140px 55px 85px 60px 55px 55px 50px 50px 50px 50px repeat(5,36px);padding:10px 14px;border-bottom:1px solid var(--border);align-items:center;transition:background .15s;gap:4px;min-width:900px;}
+.wl-row:last-child{border-bottom:none;}
+.wl-row:hover{background:var(--bg3);}
+.wl-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pos-tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.5px;}
+.pos-GKP{background:rgba(255,200,0,.15);color:#ffc800;}
+.pos-DEF{background:rgba(0,200,100,.15);color:#00c864;}
+.pos-MID{background:rgba(68,136,255,.15);color:#4488ff;}
+.pos-FWD{background:rgba(255,80,80,.15);color:#ff5050;}
+.wl-num{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:14px;color:var(--text);}
+.wl-muted{font-family:'Barlow Condensed',sans-serif;font-size:13px;color:var(--muted);}
+.fdr-cell{width:32px;height:24px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;}
+.fdr-1{background:#00cc44;color:#000;}.fdr-2{background:#77dd55;color:#000;}
+.fdr-3{background:#ffcc00;color:#333;}.fdr-4{background:#ff7722;color:#fff;}
+.fdr-5{background:#cc1111;color:#fff;}
+.empty-state{padding:40px;text-align:center;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:16px;letter-spacing:.5px;}
+.loading-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1000;gap:1.5rem;}
+.loading-screen h2{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:var(--green);text-transform:uppercase;letter-spacing:1px;}
+.loading-screen p{font-size:13px;color:var(--muted);}
+.loader{width:36px;height:36px;border:3px solid rgba(0,255,135,.1);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.error-screen{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:1000;gap:1rem;padding:2rem;text-align:center;}
+.error-screen h2{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:var(--red);text-transform:uppercase;}
+.error-screen p{font-size:13px;color:var(--muted);max-width:480px;line-height:1.6;}
+.retry-btn{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:8px 18px;border-radius:6px;border:1px solid var(--green);background:transparent;color:var(--green);cursor:pointer;margin-top:.5rem;}
+.retry-btn:hover{background:var(--green);color:#000;}
+@media(max-width:900px){
+  .stats-row{grid-template-columns:repeat(2,1fr);}
+  .bottom-grid{grid-template-columns:1fr;}
+  .subs-grid{grid-template-columns:repeat(2,1fr);}
+  .table-header,.table-row{grid-template-columns:36px 1fr 80px 50px;}
+  .col-gw,.col-prize{display:none;}
+  .main{padding:14px;}
+}
+</style>
+</head>
+<body>
+
+<div class="loading-screen" id="loading">
+  <div class="loader"></div>
+  <h2>Attanasio's Army</h2>
+  <p>Fetching live data from FPL...</p>
+</div>
+
+<div class="error-screen" id="error-screen">
+  <h2>Data Unavailable</h2>
+  <p id="error-detail">Could not load data from the Google Apps Script web app.</p>
+  <button class="retry-btn" onclick="loadData()">Try Again</button>
+</div>
+
+<div id="main-content" style="display:none;">
+
+  <div class="header">
+    <div class="header-title">Attanasio's Army <span>FFL League Table</span></div>
+    <div class="header-right">
+      <div class="updated-badge" id="updatedBadge">–</div>
+      <a class="admin-link" href="admin.html">Admin →</a>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('league',this)">League Table</button>
+    <button class="tab" onclick="switchTab('watchlist',this)">Squad Planner</button>
+  </div>
+
+  <div class="main">
+    <div class="panel active" id="panel-league">
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Total Prize Pot</div>
+          <div class="stat-value green" id="statPot">–</div>
+          <div class="stat-sub" id="statPotSub">–</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">League Leader</div>
+          <div class="stat-value" id="statLeader" style="font-size:18px;line-height:1.2">–</div>
+          <div class="stat-sub" id="statLeaderSub">–</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Golden Boot Leader</div>
+          <div class="stat-value gold" id="statBoot" style="font-size:18px;line-height:1.2">–</div>
+          <div class="stat-sub" id="statBootSub">–</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Subs Paid</div>
+          <div class="stat-value" id="statSubs">–</div>
+          <div class="stat-sub" id="statSubsSub">–</div>
+        </div>
+      </div>
+
+      <div class="section-title">Standings</div>
+      <div class="league-table">
+        <div class="table-header">
+          <div>#</div>
+          <div>Team / Manager</div>
+          <div style="text-align:right">Points</div>
+          <div style="text-align:right" class="col-gw">Best GW</div>
+          <div style="text-align:right">Subs</div>
+          <div class="col-prize">Prize</div>
+        </div>
+        <div id="leagueTableBody"></div>
+      </div>
+
+      <div class="bottom-grid">
+        <div class="card">
+          <div class="card-title">🏆 Prize Allocation</div>
+          <div id="prizeList"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">💰 Finances</div>
+          <div id="financeList"></div>
+        </div>
+      </div>
+
+      <div class="subs-section">
+        <div class="section-title">Subscription Status</div>
+        <div class="subs-grid" id="subsGrid"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-watchlist">
+      <div class="watchlist-filters">
+        <button class="filter-btn active" onclick="filterWL('ALL',this)">All</button>
+        <button class="filter-btn" onclick="filterWL('GKP',this)">GK</button>
+        <button class="filter-btn" onclick="filterWL('DEF',this)">DEF</button>
+        <button class="filter-btn" onclick="filterWL('MID',this)">MID</button>
+        <button class="filter-btn" onclick="filterWL('FWD',this)">FWD</button>
+        <button class="filter-btn" onclick="filterWL('DIFF',this)">Differentials</button>
+      </div>
+      <div class="watchlist-table">
+        <div class="wl-header">
+          <div>Player</div><div>Pos</div><div>Club</div>
+          <div style="text-align:right">Price</div>
+          <div style="text-align:right">Own%</div>
+          <div style="text-align:right">Form</div>
+          <div style="text-align:right">Pts</div>
+          <div style="text-align:right">Gls</div>
+          <div style="text-align:right">Ast</div>
+          <div style="text-align:right">CS</div>
+          <div>GW1</div><div>GW2</div><div>GW3</div><div>GW4</div><div>GW5</div>
+        </div>
+        <div id="watchListBody"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ──
+const API_URL = 'https://script.google.com/macros/s/AKfycbwwhnPmvTOfqZ3K9qgN3_qUvvisH4rEQdCpC3uN5YRffrTGtpzoch3P3xjqR07OIwyl/exec';
+
+let DATA = null;
+let allWatchList = [];
+let currentFilter = 'ALL';
+
+function switchTab(id, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  el.classList.add('active');
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function getPrizeBadge(prize) {
+  if (!prize) return '';
+  const map = {
+    'Winner':'<span class="prize-badge prize-winner">Winner</span>',
+    'Second':'<span class="prize-badge prize-second">2nd</span>',
+    'Third':'<span class="prize-badge prize-third">3rd</span>',
+    'Fourth':'<span class="prize-badge prize-fourth">4th</span>',
+    'FFL Cup':'<span class="prize-badge prize-cup">FFL Cup</span>',
+    'Golden Boot':'<span class="prize-badge prize-boot">Boot</span>'
+  };
+  return map[prize] || '';
+}
+
+// ── LOAD DATA — JSONP, bypasses CORS for GitHub Pages ──
+function loadData() {
+  document.getElementById('loading').style.display = 'flex';
+  document.getElementById('error-screen').style.display = 'none';
+
+  const prev = document.getElementById('jsonp-script');
+  if (prev) prev.remove();
+
+  const timeout = setTimeout(() => {
+    document.getElementById('loading').style.display = 'none';
+    const es = document.getElementById('error-screen');
+    es.style.display = 'flex';
+    document.getElementById('error-detail').textContent = 'Request timed out after 20 seconds.';
+  }, 20000);
+
+  window.handleLeagueData = function(result) {
+    clearTimeout(timeout);
+    if (!result.success) {
+      document.getElementById('loading').style.display = 'none';
+      const es = document.getElementById('error-screen');
+      es.style.display = 'flex';
+      document.getElementById('error-detail').textContent = result.error || 'Unknown error';
+      return;
+    }
+    DATA = result.data;
+    renderAll();
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error-screen').style.display = 'none';
+    document.getElementById('main-content').style.display = 'block';
+  };
+
+  const script = document.createElement('script');
+  script.id = 'jsonp-script';
+  script.src = API_URL + '?action=getData&callback=handleLeagueData';
+  script.onerror = function() {
+    clearTimeout(timeout);
+    document.getElementById('loading').style.display = 'none';
+    const es = document.getElementById('error-screen');
+    es.style.display = 'flex';
+    document.getElementById('error-detail').textContent = 'Script load failed — check the web app is deployed and set to Anyone access.';
+  };
+  document.head.appendChild(script);
+}
+
+function renderAll() {
+  if (DATA.meta && DATA.meta.updated) {
+    document.getElementById('updatedBadge').textContent = 'Updated ' + DATA.meta.updated;
+  }
+  renderLeague();
+  renderWatchList();
+}
+
+function renderLeague() {
+  const managers = DATA.league ? DATA.league.managers || [] : [];
+  const finance  = DATA.finance || {};
+  const sorted   = [...managers].sort((a,b) => b.pts - a.pts);
+  const paidCount = managers.filter(m => m.subsPaid).length;
+
+  const pot      = finance.totalPot  || 0;
+  const rollover = finance.rollover  || 0;
+  const subsCollected = finance.subsTotal || (paidCount * 25);
+
+  document.getElementById('statPot').textContent = pot > 0 ? '£' + pot : '£—';
+  const potParts = [];
+  if (subsCollected > 0) potParts.push('£' + subsCollected + ' subs');
+  if (rollover > 0) potParts.push('£' + rollover + ' rollover');
+  document.getElementById('statPotSub').textContent =
+    potParts.length ? potParts.join(' + ') : 'Season not yet started';
+
+  if (sorted[0] && sorted[0].pts > 0) {
+    document.getElementById('statLeader').textContent = sorted[0].team || '–';
+    document.getElementById('statLeaderSub').textContent =
+      (sorted[0].manager || '') + (sorted[0].pts ? ' — ' + sorted[0].pts + ' pts' : '');
+  } else {
+    document.getElementById('statLeader').textContent = '–';
+    document.getElementById('statLeaderSub').textContent = 'Season not started';
+  }
+
+  const bootLeader = [...managers].sort((a,b) => b.bestGW - a.bestGW)[0];
+  if (bootLeader && bootLeader.bestGW > 0) {
+    document.getElementById('statBoot').textContent = bootLeader.team || '–';
+    document.getElementById('statBootSub').textContent =
+      (bootLeader.manager || '') + ' — ' + bootLeader.bestGW + ' pts best GW';
+  } else {
+    document.getElementById('statBoot').textContent = '–';
+    document.getElementById('statBootSub').textContent = 'No gameweeks played yet';
+  }
+
+  document.getElementById('statSubs').textContent = paidCount + ' / ' + managers.length;
+  document.getElementById('statSubsSub').textContent =
+    paidCount > 0 ? '£' + (paidCount * 25) + ' collected' : '£0 collected';
+
+  const maxGW = Math.max(0, ...managers.map(m => m.bestGW || 0));
+  const tbody = document.getElementById('leagueTableBody');
+  tbody.innerHTML = '';
+
+  if (!sorted.length || sorted.every(m => !m.team)) {
+    tbody.innerHTML = '<div class="empty-state">No manager data yet</div>';
+  } else {
+    sorted.forEach((m, i) => {
+      const pos = i + 1;
+      const isBootLeader = m.bestGW > 0 && m.bestGW === maxGW;
+      const row = document.createElement('div');
+      row.className = 'table-row' +
+        (pos===1?' pos-1':pos===2?' pos-2':pos===3?' pos-3':'') +
+        (isBootLeader?' golden-boot':'');
+      const bc = pos===1?'p1':pos===2?'p2':pos===3?'p3':'';
+      const subsDot = m.subsPaid
+        ? '<span class="subs-dot subs-paid"></span>'
+        : '<span class="subs-dot subs-unpaid"></span>';
+      row.innerHTML =
+        '<div><div class="pos-badge '+bc+'">'+pos+'</div></div>'+
+        '<div class="manager-info">'+
+          '<div class="team-name">'+esc(m.team || '–')+'</div>'+
+          '<div class="manager-name">'+esc(m.manager || '')+'</div>'+
+        '</div>'+
+        '<div class="pts-cell '+(pos===1?'leader':'')+'" style="text-align:right">'+(m.pts||'–')+'</div>'+
+        '<div class="gw-cell '+(isBootLeader?'top-gw':'')+' col-gw" style="text-align:right">'+(m.bestGW||'–')+'</div>'+
+        '<div style="text-align:right">'+subsDot+'</div>'+
+        '<div class="col-prize">'+getPrizeBadge(m.prize)+'</div>';
+      tbody.appendChild(row);
+    });
+  }
+
+  // Prize allocation — now from prizeStructure
+  const ps = DATA.prizeStructure || [];
+  document.getElementById('prizeList').innerHTML = ps.map(p => {
+    const teamDisplay = p.team
+      ? esc(p.team)
+      : (p.key === 'cup' ? '<span style="color:var(--muted);font-style:italic">Not yet played</span>' : '–');
+    return '<div class="prize-row">'+
+      '<div class="prize-name">'+esc(p.label)+'</div>'+
+      '<div class="prize-mid">'+teamDisplay+'</div>'+
+      '<div class="prize-amount">'+(p.amount>0?'£'+p.amount:'–')+'</div>'+
+    '</div>';
+  }).join('');
+
+  // Finance
+  const outstanding = (managers.length - paidCount) * 25;
+  const totalAllocated = ps.reduce((s,p) => s + (p.amount||0), 0);
+  document.getElementById('financeList').innerHTML =
+    '<div class="finance-row">'+
+      '<div class="finance-label">Subs Collected ('+paidCount+'×£25)</div>'+
+      '<div class="finance-value">£'+(paidCount*25)+'</div>'+
+    '</div>'+
+    (rollover > 0
+      ? '<div class="finance-row">'+
+          '<div class="finance-label">Rollover from last season</div>'+
+          '<div class="finance-value" style="color:var(--gold)">£'+rollover+'</div>'+
+        '</div>'
+      : '') +
+    '<div class="finance-row">'+
+      '<div class="finance-label">Total Prize Pot</div>'+
+      '<div class="finance-value" style="color:var(--green)">£'+pot+'</div>'+
+    '</div>'+
+    '<div class="finance-row">'+
+      '<div class="finance-label">Prizes Allocated</div>'+
+      '<div class="finance-value">£'+totalAllocated+'</div>'+
+    '</div>'+
+    '<div class="finance-row">'+
+      '<div class="finance-label">Outstanding Subs</div>'+
+      '<div class="finance-value" style="color:'+(outstanding>0?'var(--red)':'var(--green)')+'">'+
+        '£'+outstanding+
+      '</div>'+
+    '</div>';
+
+  // Subs grid
+  const subsGrid = document.getElementById('subsGrid');
+  subsGrid.innerHTML = '';
+  sorted.forEach(m => {
+    if (!m.team) return;
+    const paid = !!m.subsPaid;
+    const card = document.createElement('div');
+    card.className = 'subs-card ' + (paid?'paid':'unpaid');
+    card.innerHTML =
+      '<div class="subs-team">'+esc(m.team)+'</div>'+
+      '<div class="subs-person">'+esc(m.manager)+'</div>'+
+      '<div class="subs-date '+(paid?'paid':'unpaid')+'">'+
+        (paid ? '✓ ' + m.subsDate : '✗ Unpaid')+
+      '</div>';
+    subsGrid.appendChild(card);
+  });
+}
+
+function renderWatchList() {
+  allWatchList = DATA.watchlist || [];
+  applyFilter();
+}
+
+function filterWL(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  applyFilter();
+}
+
+function applyFilter() {
+  let list = allWatchList;
+  if (currentFilter === 'DIFF') list = list.filter(p => p.differential === 'Y');
+  else if (currentFilter !== 'ALL') list = list.filter(p => p.pos === currentFilter);
+
+  const tbody = document.getElementById('watchListBody');
+  tbody.innerHTML = '';
+
+  if (!list.length) {
+    tbody.innerHTML = '<div class="empty-state">No players in this category yet</div>';
+    return;
+  }
+
+  list.forEach(p => {
+    const row = document.createElement('div');
+    row.className = 'wl-row';
+    const fdrs = (p.fdr || []).slice(0,5);
+    while (fdrs.length < 5) fdrs.push(null);
+    row.innerHTML =
+      '<div class="wl-name" title="'+esc(p.name)+'">'+esc(p.name)+'</div>'+
+      '<div><span class="pos-tag pos-'+esc(p.pos)+'">'+esc(p.pos)+'</span></div>'+
+      '<div class="wl-muted" style="font-size:12px">'+esc(p.club||'–')+'</div>'+
+      '<div class="wl-num" style="text-align:right">'+
+        (p.price !== '' ? '£'+p.price+'m' : '–')+
+      '</div>'+
+      '<div class="wl-muted" style="text-align:right">'+
+        (p.ownership !== '' ? p.ownership+'%' : '–')+
+      '</div>'+
+      '<div class="wl-num" style="text-align:right">'+(p.form!==''?p.form:'–')+'</div>'+
+      '<div class="wl-num" style="text-align:right">'+(p.pts||'–')+'</div>'+
+      '<div class="wl-num" style="text-align:right">'+(p.goals!=null?p.goals:'–')+'</div>'+
+      '<div class="wl-num" style="text-align:right">'+(p.assists!=null?p.assists:'–')+'</div>'+
+      '<div class="wl-num" style="text-align:right">'+(p.cleanSheets!=null?p.cleanSheets:'–')+'</div>'+
+      fdrs.map(f => f
+        ? '<div class="fdr-cell fdr-'+f+'">'+f+'</div>'
+        : '<div class="fdr-cell" style="background:var(--bg4);color:var(--muted)">–</div>'
+      ).join('');
+    tbody.appendChild(row);
+  });
+}
+
+// Init
+loadData();
+</script>
+</body>
+</html>
