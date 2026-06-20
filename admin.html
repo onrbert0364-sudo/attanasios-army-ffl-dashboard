@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attanasio's Army — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green:#00ff87; --gold:#ffd700; --red:#ff4444; --amber:#ffb300;
+  --bg:#0d0f14; --bg2:#13161e; --bg3:#1a1e28; --bg4:#1f2433;
+  --border:#2a2f3f; --text:#e8ecf4; --muted:#7a8499; --card-radius:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font-size:14px;min-height:100vh;}
+.header{background:var(--bg2);border-bottom:2px solid var(--green);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;}
+.header-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;letter-spacing:1px;color:var(--green);text-transform:uppercase;}
+.header-title span{color:var(--text);opacity:.5;font-weight:400;font-size:14px;margin-left:10px;letter-spacing:0;text-transform:none;}
+.back-link{font-size:11px;color:var(--muted);text-decoration:none;border:1px solid var(--border);padding:4px 10px;border-radius:20px;transition:all .2s;}
+.back-link:hover{color:var(--green);border-color:var(--green);}
+.main{padding:24px;max-width:900px;margin:0 auto;}
+
+/* LOGIN GATE */
+.login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:1000;}
+.login-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--card-radius);padding:32px;width:320px;text-align:center;}
+.login-box h2{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;color:var(--green);text-transform:uppercase;margin-bottom:6px;}
+.login-box p{font-size:12px;color:var(--muted);margin-bottom:20px;}
+.login-box input{width:100%;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:14px;margin-bottom:12px;}
+.login-box input:focus{outline:none;border-color:var(--green);}
+.login-btn{width:100%;padding:10px;background:var(--green);color:#000;border:none;border-radius:6px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;}
+.login-btn:hover{background:#00d970;}
+.login-error{color:var(--red);font-size:12px;margin-top:10px;display:none;}
+
+/* SECTIONS */
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--card-radius);padding:20px;margin-bottom:20px;}
+.section-head{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:.8px;text-transform:uppercase;color:var(--green);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.field-row{display:flex;gap:10px;align-items:flex-end;margin-bottom:12px;flex-wrap:wrap;}
+.field{flex:1;min-width:120px;}
+.field label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;}
+.field input,.field select{width:100%;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;}
+.field input:focus,.field select:focus{outline:none;border-color:var(--green);}
+.btn{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:.5px;text-transform:uppercase;padding:9px 16px;border-radius:6px;border:1px solid var(--green);background:transparent;color:var(--green);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.btn:hover{background:var(--green);color:#000;}
+.btn.danger{border-color:var(--red);color:var(--red);}
+.btn.danger:hover{background:var(--red);color:#fff;}
+.btn.small{padding:6px 12px;font-size:11px;}
+.manager-row{display:grid;grid-template-columns:1fr 100px 90px 110px 80px;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);align-items:center;font-size:13px;}
+.manager-row:last-child{border-bottom:none;}
+.manager-row.header-row{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;}
+.manager-team{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;}
+.manager-sub{font-size:10px;color:var(--muted);}
+.subs-toggle{display:flex;align-items:center;gap:6px;}
+.subs-status{font-size:11px;}
+.subs-status.paid{color:var(--green);}
+.subs-status.unpaid{color:var(--red);}
+.prize-row-admin{display:grid;grid-template-columns:100px 1fr 90px 120px 80px;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);align-items:center;}
+.prize-row-admin:last-child{border-bottom:none;}
+.prize-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;}
+.prize-team-display{font-size:12px;color:var(--muted);}
+.prize-team-input{padding:6px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:12px;width:100%;}
+.amount-input{padding:6px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:13px;width:100%;}
+.date-input{padding:6px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:12px;width:100%;}
+.pot-summary{display:flex;justify-content:space-between;align-items:center;background:var(--bg3);border-radius:8px;padding:12px 16px;margin-bottom:16px;}
+.pot-summary .label{font-size:12px;color:var(--muted);}
+.pot-summary .value{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:24px;color:var(--green);}
+.pot-balance{font-size:11px;margin-top:4px;}
+.pot-balance.ok{color:var(--green);}
+.pot-balance.warn{color:var(--amber);}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--bg2);border:1px solid var(--green);border-radius:8px;padding:12px 18px;font-size:13px;color:var(--text);box-shadow:0 4px 20px rgba(0,0,0,.4);display:none;z-index:2000;max-width:340px;}
+.toast.error{border-color:var(--red);}
+.empty-note{font-size:12px;color:var(--muted);font-style:italic;padding:8px 0;}
+.spacer-line{height:1px;background:var(--border);margin:16px 0;}
+</style>
+</head>
+<body>
+
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <h2>Admin Access</h2>
+    <p>Attanasio's Army — Mini League Admin</p>
+    <input type="password" id="pwdInput" placeholder="Password" onkeydown="if(event.key==='Enter')login()">
+    <button class="login-btn" onclick="login()">Sign In</button>
+    <div class="login-error" id="loginError">Incorrect password</div>
+  </div>
+</div>
+
+<div id="adminContent" style="display:none;">
+
+  <div class="header">
+    <div class="header-title">Attanasio's Army <span>Admin</span></div>
+    <a class="back-link" href="index.html">← League Table</a>
+  </div>
+
+  <div class="main">
+
+    <!-- POT OVERVIEW -->
+    <div class="section">
+      <div class="section-head">Prize Pot Overview</div>
+      <div class="pot-summary">
+        <div>
+          <div class="label">Total Prize Pot</div>
+          <div class="value" id="potTotal">£0</div>
+        </div>
+        <div style="text-align:right">
+          <div class="label">Prizes Allocated</div>
+          <div class="value" id="potAllocated" style="font-size:18px;color:var(--text)">£0</div>
+          <div class="pot-balance" id="potBalance"></div>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Rollover from last season (£)</label>
+          <input type="number" id="rolloverInput" placeholder="0">
+        </div>
+        <button class="btn" onclick="saveRollover()">Save Rollover</button>
+        <div class="field">
+          <label>Other carried-over sums (£)</label>
+          <input type="number" id="oddSumInput" placeholder="0">
+        </div>
+        <button class="btn" onclick="saveOddSum()">Save</button>
+      </div>
+    </div>
+
+    <!-- MANAGERS -->
+    <div class="section">
+      <div class="section-head">Managers & Subs</div>
+      <div class="manager-row header-row">
+        <div>Team / Manager</div>
+        <div>Points</div>
+        <div>Subs</div>
+        <div>Date Paid</div>
+        <div></div>
+      </div>
+      <div id="managerList"></div>
+      <div class="spacer-line"></div>
+      <div class="field-row">
+        <div class="field">
+          <label>Add Manager — FPL Manager ID</label>
+          <input type="text" id="newManagerId" placeholder="e.g. 713338">
+        </div>
+        <button class="btn" onclick="addManager()">Add Manager</button>
+      </div>
+    </div>
+
+    <!-- PRIZES -->
+    <div class="section">
+      <div class="section-head">Prize Allocation</div>
+      <div id="prizeAdminList"></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ──
+const API_URL = 'https://script.google.com/macros/s/AKfycbwwhnPmvTOfqZ3K9qgN3_qUvvisH4rEQdCpC3uN5YRffrTGtpzoch3P3xjqR07OIwyl/exec';
+
+let DATA = null;
+let ADMIN_PWD = '';
+
+function login() {
+  const pwd = document.getElementById('pwdInput').value.trim();
+  if (!pwd) return;
+  ADMIN_PWD = pwd;
+  document.getElementById('loginError').style.display = 'none';
+
+  // Validate the password via a no-op admin action before granting access
+  callApi({ action: 'ping', pwd: ADMIN_PWD }, function() {
+    loadData(true);
+  }, function(err) {
+    document.getElementById('loginError').textContent = err === 'Incorrect password' ? 'Incorrect password' : err;
+    document.getElementById('loginError').style.display = 'block';
+    ADMIN_PWD = '';
+  });
+}
+
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (isError ? ' error' : '');
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 3500);
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── JSONP CALL HELPER ──
+let callbackCounter = 0;
+function callApi(params, onSuccess, onError) {
+  const cbName = 'apiCallback_' + (callbackCounter++);
+  const timeout = setTimeout(() => {
+    delete window[cbName];
+    if (onError) onError('Request timed out');
+  }, 20000);
+
+  window[cbName] = function(result) {
+    clearTimeout(timeout);
+    delete window[cbName];
+    script.remove();
+    if (result.success) {
+      onSuccess(result);
+    } else {
+      if (onError) onError(result.error || 'Unknown error');
+    }
+  };
+
+  const qs = Object.keys(params).map(k =>
+    encodeURIComponent(k) + '=' + encodeURIComponent(params[k])
+  ).join('&');
+
+  const script = document.createElement('script');
+  script.src = API_URL + '?' + qs + '&callback=' + cbName;
+  script.onerror = function() {
+    clearTimeout(timeout);
+    delete window[cbName];
+    if (onError) onError('Script load failed — check the web app deployment');
+  };
+  document.head.appendChild(script);
+}
+
+function loadData(isInitialLogin) {
+  callApi({ action: 'getData' }, function(result) {
+    DATA = result.data;
+    if (isInitialLogin) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('adminContent').style.display = 'block';
+    }
+    renderAdmin();
+  }, function(err) {
+    if (isInitialLogin) {
+      document.getElementById('loginError').textContent = 'Could not load data: ' + err;
+      document.getElementById('loginError').style.display = 'block';
+    } else {
+      showToast('Refresh failed: ' + err, true);
+    }
+  });
+}
+
+function renderAdmin() {
+  renderPotSummary();
+  renderManagers();
+  renderPrizes();
+}
+
+function renderPotSummary() {
+  const finance = DATA.finance || {};
+  const ps = DATA.prizeStructure || [];
+  const allocated = ps.reduce((s,p) => s + (p.amount||0), 0);
+
+  document.getElementById('potTotal').textContent = '£' + (finance.totalPot || 0);
+  document.getElementById('potAllocated').textContent = '£' + allocated;
+
+  const diff = (finance.totalPot || 0) - allocated;
+  const balEl = document.getElementById('potBalance');
+  if (diff === 0) {
+    balEl.textContent = '✓ Fully allocated';
+    balEl.className = 'pot-balance ok';
+  } else if (diff > 0) {
+    balEl.textContent = '£' + diff + ' unallocated';
+    balEl.className = 'pot-balance warn';
+  } else {
+    balEl.textContent = '£' + Math.abs(diff) + ' over-allocated';
+    balEl.className = 'pot-balance warn';
+  }
+
+  document.getElementById('rolloverInput').value = finance.rollover || '';
+  document.getElementById('oddSumInput').value = finance.extraOdd || '';
+}
+
+function renderManagers() {
+  const managers = DATA.league ? DATA.league.managers || [] : [];
+  const sorted = [...managers].sort((a,b) => b.pts - a.pts);
+  const el = document.getElementById('managerList');
+
+  if (!sorted.length) {
+    el.innerHTML = '<div class="empty-note">No managers added yet — add one below</div>';
+    return;
+  }
+
+  el.innerHTML = sorted.map(m => {
+    const paid = !!m.subsPaid;
+    return '<div class="manager-row">'+
+      '<div><div class="manager-team">'+esc(m.team||'–')+'</div><div class="manager-sub">'+esc(m.manager||'')+' · ID '+esc(m.id)+'</div></div>'+
+      '<div>'+(m.pts||0)+'</div>'+
+      '<div class="subs-status '+(paid?'paid':'unpaid')+'">'+(paid?'✓ Paid':'✗ Unpaid')+'</div>'+
+      '<div>'+(paid ? esc(m.subsDate) : '<button class="btn small" onclick="markPaid(\''+m.id+'\')">Mark Paid</button>')+'</div>'+
+      '<div>'+(paid
+        ? '<button class="btn small danger" onclick="unmarkPaid(\''+m.id+'\')">Undo</button>'
+        : '<button class="btn small danger" onclick="removeManager(\''+m.id+'\')">Remove</button>')+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function renderPrizes() {
+  const ps = DATA.prizeStructure || [];
+  const el = document.getElementById('prizeAdminList');
+
+  el.innerHTML = ps.map(p => {
+    const teamCell = p.editableTeam
+      ? '<input class="prize-team-input" id="cupTeam" placeholder="Winning team name" value="'+esc(p.team)+'">'
+      : '<div class="prize-team-display">'+(p.team ? esc(p.team) : '<span style="font-style:italic">– not yet determined –</span>')+'</div>';
+
+    const teamAction = p.editableTeam
+      ? '<button class="btn small" onclick="saveCupWinner()">Save</button>'
+      : '';
+
+    return '<div class="prize-row-admin">'+
+      '<div class="prize-label">'+esc(p.label)+'</div>'+
+      '<div style="display:flex;gap:6px;align-items:center">'+teamCell+teamAction+'</div>'+
+      '<div><input class="amount-input" id="amt_'+p.key+'" type="number" placeholder="£" value="'+(p.amount||'')+'" onblur="saveAmount(\''+p.key+'\')"></div>'+
+      '<div><input class="date-input" id="date_'+p.key+'" type="text" placeholder="dd/mm/yyyy" value="'+esc(p.paidDate)+'" onblur="savePaidDate(\''+p.key+'\')"></div>'+
+      '<div></div>'+
+    '</div>';
+  }).join('');
+}
+
+// ── ACTIONS ──
+function markPaid(id) {
+  const today = new Date();
+  const date = String(today.getDate()).padStart(2,'0')+'/'+String(today.getMonth()+1).padStart(2,'0')+'/'+today.getFullYear();
+  callApi({ action:'markSubsPaid', id:id, date:date, pwd:ADMIN_PWD }, r => {
+    DATA = r.data; renderAdmin(); showToast('Subs marked as paid');
+  }, e => showToast(e, true));
+}
+
+function unmarkPaid(id) {
+  callApi({ action:'unmarkSubsPaid', id:id, pwd:ADMIN_PWD }, r => {
+    DATA = r.data; renderAdmin(); showToast('Payment status cleared');
+  }, e => showToast(e, true));
+}
+
+function addManager() {
+  const id = document.getElementById('newManagerId').value.trim();
+  if (!id) { showToast('Enter an FPL manager ID first', true); return; }
+  callApi({ action:'addManager', id:id, pwd:ADMIN_PWD }, r => {
+    DATA = r.data; renderAdmin();
+    document.getElementById('newManagerId').value = '';
+    showToast('Manager added — run a refresh on the Sheet to pull their stats');
+  }, e => showToast(e, true));
+}
+
+function removeManager(id) {
+  if (!confirm('Remove this manager from the league?')) return;
+  callApi({ action:'removeManager', id:id, pwd:ADMIN_PWD }, r => {
+    DATA = r.data; renderAdmin(); showToast('Manager removed');
+  }, e => showToast(e, true));
+}
+
+function saveAmount(key) {
+  const amount = document.getElementById('amt_' + key).value;
+  callApi({ action:'setPrizeAmount', position:key, amount:amount, pwd:ADMIN_PWD }, r => {
+    DATA = r.data; renderAdmin(); showToast('Prize amount updated');
+  }, e => showToast(e, true));
+}
+
+function savePaidDate(key) {
+  const date = document.getElementById('date_' + key).value;
+  callApi({ action:'setPaidOutDate', position:key, date:date, pwd:ADMIN_PWD }, r => {
+    DATA = r.data; renderAdmin(); showToast('Paid-out date saved');
+  }, e => showToast(e, true));
+}
+
+function saveCupWinner() {
+  const team = document.getElementById('cupTeam').value.trim();
+  callApi({ action:'setCupWinner', team:team, pwd:ADMIN_PWD }, r => {
+    DATA = r.data; renderAdmin(); showToast('FFL Cup winner saved');
+  }, e => showToast(e, true));
+}
+
+function saveRollover() {
+  const amount = document.getElementById('rolloverInput').value;
+  callApi({ action:'setRollover', amount:amount, pwd:ADMIN_PWD }, r => {
+    DATA = r.data; renderAdmin(); showToast('Rollover saved');
+  }, e => showToast(e, true));
+}
+
+function saveOddSum() {
+  const amount = document.getElementById('oddSumInput').value;
+  callApi({ action:'setOddSum', amount:amount, pwd:ADMIN_PWD }, r => {
+    DATA = r.data; renderAdmin(); showToast('Saved');
+  }, e => showToast(e, true));
+}
+</script>
+</body>
+</html>
