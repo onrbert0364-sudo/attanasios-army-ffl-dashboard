@@ -109,10 +109,17 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font
       </div>
       <div class="field-row">
         <div class="field">
+          <label>Entry Fee Per Manager (£)</label>
+          <input type="number" id="entryFeeInput" placeholder="25">
+        </div>
+        <button class="btn" onclick="saveEntryFee()">Save Entry Fee</button>
+        <div class="field">
           <label>Rollover from last season (£)</label>
           <input type="number" id="rolloverInput" placeholder="0">
         </div>
         <button class="btn" onclick="saveRollover()">Save Rollover</button>
+      </div>
+      <div class="field-row">
         <div class="field">
           <label>Other carried-over sums (£)</label>
           <input type="number" id="oddSumInput" placeholder="0">
@@ -272,6 +279,7 @@ function renderPotSummary() {
     balEl.className = 'pot-balance warn';
   }
 
+  document.getElementById('entryFeeInput').value = finance.entryFee || 25;
   document.getElementById('rolloverInput').value = finance.rollover || '';
   document.getElementById('oddSumInput').value = finance.extraOdd || '';
 }
@@ -406,6 +414,13 @@ function saveCupWinner() {
   const team = document.getElementById('cupTeam').value.trim();
   callApi({ action:'setCupWinner', team:team, pwd:ADMIN_PWD }, r => {
     DATA = r.data; renderAdmin(); showToast('FFL Cup winner saved');
+  }, e => showToast(e, true));
+}
+
+function saveEntryFee() {
+  const amount = document.getElementById('entryFeeInput').value;
+  callApi({ action:'setEntryFee', amount:amount, pwd:ADMIN_PWD }, r => {
+    DATA = r.data; renderAdmin(); showToast('Entry fee updated — applies to future subs marked as paid');
   }, e => showToast(e, true));
 }
 

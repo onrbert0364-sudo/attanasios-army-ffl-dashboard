@@ -329,7 +329,8 @@ function renderLeague() {
 
   const pot      = finance.totalPot  || 0;
   const rollover = finance.rollover  || 0;
-  const subsCollected = finance.subsTotal || (paidCount * 25);
+  const entryFee = finance.entryFee || 25;
+  const subsCollected = finance.subsTotal || (paidCount * entryFee);
 
   document.getElementById('statPot').textContent = pot > 0 ? '£' + pot : '£—';
   const potParts = [];
@@ -359,7 +360,7 @@ function renderLeague() {
 
   document.getElementById('statSubs').textContent = paidCount + ' / ' + managers.length;
   document.getElementById('statSubsSub').textContent =
-    paidCount > 0 ? '£' + (paidCount * 25) + ' collected' : '£0 collected';
+    paidCount > 0 ? '£' + (paidCount * entryFee) + ' collected' : '£0 collected';
 
   const maxGW = Math.max(0, ...managers.map(m => m.bestGW || 0));
   const tbody = document.getElementById('leagueTableBody');
@@ -407,12 +408,12 @@ function renderLeague() {
   }).join('');
 
   // Finance
-  const outstanding = (managers.length - paidCount) * 25;
+  const outstanding = (managers.length - paidCount) * entryFee;
   const totalAllocated = ps.reduce((s,p) => s + (p.amount||0), 0);
   document.getElementById('financeList').innerHTML =
     '<div class="finance-row">'+
-      '<div class="finance-label">Subs Collected ('+paidCount+'×£25)</div>'+
-      '<div class="finance-value">£'+(paidCount*25)+'</div>'+
+      '<div class="finance-label">Subs Collected ('+paidCount+'×£'+entryFee+')</div>'+
+      '<div class="finance-value">£'+(paidCount*entryFee)+'</div>'+
     '</div>'+
     (rollover > 0
       ? '<div class="finance-row">'+
