@@ -183,6 +183,7 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbzZB5eQzD5Z8uWE-PMYwsDL
 
 let DATA = null;
 let ADMIN_PWD = '';
+let callbackCounter = 0;
 
 // Fetch the league name before login (getData needs no password) so the
 // login screen and browser title reflect this season's name right away
@@ -225,7 +226,6 @@ function esc(s) {
 }
 
 // ── JSONP CALL HELPER ──
-let callbackCounter = 0;
 function callApi(params, onSuccess, onError, timeoutMs) {
   const cbName = 'apiCallback_' + (callbackCounter++);
   const timeout = setTimeout(() => {
