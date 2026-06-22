@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Attanasio's Army — League Table</title>
+<title>League Table</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -142,7 +142,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font
 <div id="main-content" style="display:none;">
 
   <div class="header">
-    <div class="header-title">Attanasio's Army <span>FFL League Table</span></div>
+    <div class="header-title"><span id="leagueNameHeader">Loading...</span> <span>FFL League Table</span></div>
     <div class="header-right">
       <div class="updated-badge" id="updatedBadge">–</div>
       <a class="admin-link" href="admin.html">Admin →</a>
@@ -238,7 +238,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font
 
 <script>
 // ── CONFIG ──
-const API_URL = 'https://script.google.com/macros/s/AKfycbwwhnPmvTOfqZ3K9qgN3_qUvvisH4rEQdCpC3uN5YRffrTGtpzoch3P3xjqR07OIwyl/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbzZB5eQzD5Z8uWE-PMYwsDL-615VnmZ6tUEMM5pcNNpSaN6TAQqYN8juuNasmKyOjnr/exec';
 
 let DATA = null;
 let allWatchList = [];
@@ -314,6 +314,9 @@ function loadData() {
 }
 
 function renderAll() {
+  const leagueName = (DATA.meta && DATA.meta.leagueName) || "Attanasio's Army";
+  document.title = leagueName + ' — League Table';
+  document.getElementById('leagueNameHeader').textContent = leagueName;
   if (DATA.meta && DATA.meta.updated) {
     document.getElementById('updatedBadge').textContent = 'Updated ' + DATA.meta.updated;
   }

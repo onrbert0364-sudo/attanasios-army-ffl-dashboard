@@ -77,7 +77,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font
 <div class="login-screen" id="loginScreen">
   <div class="login-box">
     <h2>Admin Access</h2>
-    <p>Attanasio's Army — Mini League Admin</p>
+    <p id="loginSubtitle">Mini League Admin</p>
     <input type="password" id="pwdInput" placeholder="Password" onkeydown="if(event.key==='Enter')login()">
     <button class="login-btn" onclick="login()">Sign In</button>
     <div class="login-error" id="loginError">Incorrect password</div>
@@ -87,11 +87,24 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font
 <div id="adminContent" style="display:none;">
 
   <div class="header">
-    <div class="header-title">Attanasio's Army <span>Admin</span></div>
+    <div class="header-title"><span id="leagueNameHeader">Loading...</span> <span>Admin</span></div>
     <a class="back-link" href="index.html">← League Table</a>
   </div>
 
   <div class="main">
+
+    <!-- LEAGUE SETTINGS -->
+    <div class="section">
+      <div class="section-head">League Settings</div>
+      <div class="field-row">
+        <div class="field">
+          <label>League Name</label>
+          <input type="text" id="leagueNameInput" placeholder="e.g. Attanasio's Army">
+        </div>
+        <button class="btn" onclick="saveLeagueName()">Save Name</button>
+      </div>
+      <div class="empty-note">Updates the title shown on this page and the public League page — handy for the fresh name each new season.</div>
+    </div>
 
     <!-- POT OVERVIEW -->
     <div class="section">
@@ -166,10 +179,21 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font
 
 <script>
 // ── CONFIG ──
-const API_URL = 'https://script.google.com/macros/s/AKfycbwwhnPmvTOfqZ3K9qgN3_qUvvisH4rEQdCpC3uN5YRffrTGtpzoch3P3xjqR07OIwyl/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbzZB5eQzD5Z8uWE-PMYwsDL-615VnmZ6tUEMM5pcNNpSaN6TAQqYN8juuNasmKyOjnr/exec';
 
 let DATA = null;
 let ADMIN_PWD = '';
+
+// Fetch the league name before login (getData needs no password) so the
+// login screen and browser title reflect this season's name right away
+(function loadLeagueNameForLogin() {
+  callApi({ action: 'getData' }, function(result) {
+    const name = (result.data.meta && result.data.meta.leagueName) || "Attanasio's Army";
+    document.title = name + ' — Admin';
+    document.getElementById('loginSubtitle').textContent = name + ' — Mini League Admin';
+    document.getElementById('leagueNameHeader').textContent = name;
+  }, function() { /* fail silently — login screen just shows generic text */ });
+})();
 
 function login() {
   const pwd = document.getElementById('pwdInput').value.trim();
@@ -253,6 +277,10 @@ function loadData(isInitialLogin) {
 }
 
 function renderAdmin() {
+  const leagueName = (DATA.meta && DATA.meta.leagueName) || "Attanasio's Army";
+  document.title = leagueName + ' — Admin';
+  document.getElementById('leagueNameHeader').textContent = leagueName;
+  document.getElementById('leagueNameInput').value = leagueName;
   renderPotSummary();
   renderManagers();
   renderPrizes();
@@ -414,6 +442,14 @@ function saveCupWinner() {
   const team = document.getElementById('cupTeam').value.trim();
   callApi({ action:'setCupWinner', team:team, pwd:ADMIN_PWD }, r => {
     DATA = r.data; renderAdmin(); showToast('FFL Cup winner saved');
+  }, e => showToast(e, true));
+}
+
+function saveLeagueName() {
+  const name = document.getElementById('leagueNameInput').value.trim();
+  if (!name) { showToast('League name cannot be blank', true); return; }
+  callApi({ action:'setLeagueName', name:name, pwd:ADMIN_PWD }, r => {
+    DATA = r.data; renderAdmin(); showToast('League name updated ✓');
   }, e => showToast(e, true));
 }
 
