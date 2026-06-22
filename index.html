@@ -88,8 +88,8 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font
 .filter-btn:hover{border-color:var(--green);color:var(--text);}
 .filter-btn.active{background:var(--green);color:#000;border-color:var(--green);}
 .watchlist-table{background:var(--bg2);border:1px solid var(--border);border-radius:var(--card-radius);overflow:hidden;overflow-x:auto;}
-.wl-header{display:grid;grid-template-columns:140px 55px 85px 60px 55px 55px 50px 50px 50px 50px repeat(5,36px);padding:10px 14px;background:var(--bg3);border-bottom:1px solid var(--border);font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-weight:600;gap:4px;min-width:900px;}
-.wl-row{display:grid;grid-template-columns:140px 55px 85px 60px 55px 55px 50px 50px 50px 50px repeat(5,36px);padding:10px 14px;border-bottom:1px solid var(--border);align-items:center;transition:background .15s;gap:4px;min-width:900px;}
+.wl-header{display:grid;grid-template-columns:160px 55px 85px 65px 60px 60px 55px 50px 50px 50px 90px;padding:10px 14px;background:var(--bg3);border-bottom:1px solid var(--border);font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-weight:600;gap:8px;min-width:780px;}
+.wl-row{display:grid;grid-template-columns:160px 55px 85px 65px 60px 60px 55px 50px 50px 50px 90px;padding:10px 14px;border-bottom:1px solid var(--border);align-items:center;transition:background .15s;gap:8px;min-width:780px;}
 .wl-row:last-child{border-bottom:none;}
 .wl-row:hover{background:var(--bg3);}
 .wl-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -100,10 +100,19 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font
 .pos-FWD{background:rgba(255,80,80,.15);color:#ff5050;}
 .wl-num{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:14px;color:var(--text);}
 .wl-muted{font-family:'Barlow Condensed',sans-serif;font-size:13px;color:var(--muted);}
-.fdr-cell{width:32px;height:24px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;}
-.fdr-1{background:#00cc44;color:#000;}.fdr-2{background:#77dd55;color:#000;}
-.fdr-3{background:#ffcc00;color:#333;}.fdr-4{background:#ff7722;color:#fff;}
-.fdr-5{background:#cc1111;color:#fff;}
+.squad-tag{display:inline-block;padding:3px 10px;border-radius:4px;font-size:11px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.3px;}
+.squad-yes{background:rgba(0,230,118,.12);color:#00e676;border:1px solid rgba(0,230,118,.25);}
+.squad-maybe{background:rgba(255,179,0,.1);color:#ffb300;border:1px solid rgba(255,179,0,.2);}
+.squad-summary{display:flex;align-items:center;gap:24px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--card-radius);padding:14px 20px;margin-bottom:16px;flex-wrap:wrap;}
+.squad-stat{text-align:center;}
+.squad-stat .ss-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:26px;line-height:1;}
+.squad-stat .ss-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:3px;}
+.squad-summary.status-good .ss-val.squad-total{color:#00e676;}
+.squad-summary.status-incomplete .ss-val.squad-total{color:#ffb300;}
+.squad-summary.status-over .ss-val.squad-total{color:#ff4444;}
+.squad-summary.status-good{border-color:rgba(0,230,118,.3);}
+.squad-summary.status-incomplete{border-color:rgba(255,179,0,.3);}
+.squad-summary.status-over{border-color:rgba(255,68,68,.3);}
 .empty-state{padding:40px;text-align:center;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:16px;letter-spacing:.5px;}
 .loading-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1000;gap:1.5rem;}
 .loading-screen h2{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:var(--green);text-transform:uppercase;letter-spacing:1px;}
@@ -216,8 +225,9 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font
         <button class="filter-btn" onclick="filterWL('DEF',this)">DEF</button>
         <button class="filter-btn" onclick="filterWL('MID',this)">MID</button>
         <button class="filter-btn" onclick="filterWL('FWD',this)">FWD</button>
-        <button class="filter-btn" onclick="filterWL('DIFF',this)">Differentials</button>
+        <button class="filter-btn" onclick="filterWL('SQUAD',this)">My Squad (Yes)</button>
       </div>
+      <div class="squad-summary" id="squadSummary"></div>
       <div class="watchlist-table">
         <div class="wl-header">
           <div>Player</div><div>Pos</div><div>Club</div>
@@ -228,7 +238,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font
           <div style="text-align:right">Gls</div>
           <div style="text-align:right">Ast</div>
           <div style="text-align:right">CS</div>
-          <div>GW1</div><div>GW2</div><div>GW3</div><div>GW4</div><div>GW5</div>
+          <div>Squad?</div>
         </div>
         <div id="watchListBody"></div>
       </div>
@@ -459,7 +469,26 @@ function renderLeague() {
 
 function renderWatchList() {
   allWatchList = DATA.watchlist || [];
+  renderSquadSummary();
   applyFilter();
+}
+
+function renderSquadSummary() {
+  const s = DATA.squadSummary || { total: 0, yesCount: 0, budget: 100, status: 'incomplete' };
+  const el = document.getElementById('squadSummary');
+  el.className = 'squad-summary status-' + s.status;
+
+  const statusLabel = s.status === 'over'
+    ? 'Over budget'
+    : s.status === 'incomplete'
+      ? (s.yesCount < 15 ? 'Squad incomplete' : 'Too many picks')
+      : 'Squad ready';
+
+  el.innerHTML =
+    '<div class="squad-stat"><div class="ss-val squad-total">£'+s.total.toFixed(1)+'m</div><div class="ss-lbl">Squad Value</div></div>'+
+    '<div class="squad-stat"><div class="ss-val">'+s.yesCount+' / 15</div><div class="ss-lbl">Players Picked</div></div>'+
+    '<div class="squad-stat"><div class="ss-val">£'+s.budget+'.0m</div><div class="ss-lbl">Budget Limit</div></div>'+
+    '<div class="squad-stat"><div class="ss-val" style="font-size:16px;text-transform:uppercase;letter-spacing:.5px;">'+statusLabel+'</div><div class="ss-lbl">Status</div></div>';
 }
 
 function filterWL(f, el) {
@@ -471,7 +500,7 @@ function filterWL(f, el) {
 
 function applyFilter() {
   let list = allWatchList;
-  if (currentFilter === 'DIFF') list = list.filter(p => p.differential === 'Y');
+  if (currentFilter === 'SQUAD') list = list.filter(p => p.squadPick === 'Yes');
   else if (currentFilter !== 'ALL') list = list.filter(p => p.pos === currentFilter);
 
   const tbody = document.getElementById('watchListBody');
@@ -485,8 +514,11 @@ function applyFilter() {
   list.forEach(p => {
     const row = document.createElement('div');
     row.className = 'wl-row';
-    const fdrs = (p.fdr || []).slice(0,5);
-    while (fdrs.length < 5) fdrs.push(null);
+    const squadBadge = p.squadPick === 'Yes'
+      ? '<span class="squad-tag squad-yes">Yes</span>'
+      : p.squadPick === 'Maybe'
+        ? '<span class="squad-tag squad-maybe">Maybe</span>'
+        : '<span class="wl-muted">–</span>';
     row.innerHTML =
       '<div class="wl-name" title="'+esc(p.name)+'">'+esc(p.name)+'</div>'+
       '<div><span class="pos-tag pos-'+esc(p.pos)+'">'+esc(p.pos)+'</span></div>'+
@@ -502,10 +534,7 @@ function applyFilter() {
       '<div class="wl-num" style="text-align:right">'+(p.goals!=null?p.goals:'–')+'</div>'+
       '<div class="wl-num" style="text-align:right">'+(p.assists!=null?p.assists:'–')+'</div>'+
       '<div class="wl-num" style="text-align:right">'+(p.cleanSheets!=null?p.cleanSheets:'–')+'</div>'+
-      fdrs.map(f => f
-        ? '<div class="fdr-cell fdr-'+f+'">'+f+'</div>'
-        : '<div class="fdr-cell" style="background:var(--bg4);color:var(--muted)">–</div>'
-      ).join('');
+      '<div>'+squadBadge+'</div>';
     tbody.appendChild(row);
   });
 }
