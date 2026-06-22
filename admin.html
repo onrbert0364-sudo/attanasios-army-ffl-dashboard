@@ -123,7 +123,10 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font
 
     <!-- MANAGERS -->
     <div class="section">
-      <div class="section-head">Managers & Subs</div>
+      <div class="section-head" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+        <span>Managers & Subs</span>
+        <button class="btn small" id="refreshStatsBtn" onclick="refreshAllStats()">↻ Refresh League Stats Now</button>
+      </div>
       <div class="manager-row header-row">
         <div>Team / Manager</div>
         <div>Points</div>
@@ -138,8 +141,9 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font
           <label>Add Manager — FPL Manager ID</label>
           <input type="text" id="newManagerId" placeholder="e.g. 713338">
         </div>
-        <button class="btn" onclick="addManager()">Add Manager</button>
+        <button class="btn" id="addManagerBtn" onclick="addManager()">Add Manager</button>
       </div>
+      <div class="empty-note" id="addManagerNote" style="display:none;">Pulling live FPL data for this manager — this can take 10–20 seconds for the full league...</div>
     </div>
 
     <!-- PRIZES -->
@@ -191,12 +195,12 @@ function esc(s) {
 
 // ── JSONP CALL HELPER ──
 let callbackCounter = 0;
-function callApi(params, onSuccess, onError) {
+function callApi(params, onSuccess, onError, timeoutMs) {
   const cbName = 'apiCallback_' + (callbackCounter++);
   const timeout = setTimeout(() => {
     delete window[cbName];
     if (onError) onError('Request timed out');
-  }, 20000);
+  }, timeoutMs || 20000);
 
   window[cbName] = function(result) {
     clearTimeout(timeout);
@@ -338,11 +342,43 @@ function unmarkPaid(id) {
 function addManager() {
   const id = document.getElementById('newManagerId').value.trim();
   if (!id) { showToast('Enter an FPL manager ID first', true); return; }
+
+  const btn = document.getElementById('addManagerBtn');
+  const note = document.getElementById('addManagerNote');
+  btn.disabled = true;
+  btn.textContent = 'Adding...';
+  note.style.display = 'block';
+
   callApi({ action:'addManager', id:id, pwd:ADMIN_PWD }, r => {
     DATA = r.data; renderAdmin();
     document.getElementById('newManagerId').value = '';
-    showToast('Manager added — run a refresh on the Sheet to pull their stats');
-  }, e => showToast(e, true));
+    btn.disabled = false;
+    btn.textContent = 'Add Manager';
+    note.style.display = 'none';
+    showToast('Manager added with live stats ✓');
+  }, e => {
+    btn.disabled = false;
+    btn.textContent = 'Add Manager';
+    note.style.display = 'none';
+    showToast(e, true);
+  }, 60000); // longer timeout — this triggers a full FPL refresh server-side
+}
+
+function refreshAllStats() {
+  const btn = document.getElementById('refreshStatsBtn');
+  btn.disabled = true;
+  btn.textContent = '↻ Refreshing — this can take 10–20s...';
+
+  callApi({ action:'refreshAllStats', pwd:ADMIN_PWD }, r => {
+    DATA = r.data; renderAdmin();
+    btn.disabled = false;
+    btn.textContent = '↻ Refresh League Stats Now';
+    showToast('All manager stats refreshed from FPL ✓');
+  }, e => {
+    btn.disabled = false;
+    btn.textContent = '↻ Refresh League Stats Now';
+    showToast(e, true);
+  }, 60000);
 }
 
 function removeManager(id) {
