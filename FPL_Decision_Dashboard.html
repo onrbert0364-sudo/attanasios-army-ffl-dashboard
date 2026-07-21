@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FPL Decision Dashboard — Copacarrowbana FC 2026/27</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0d1117; color: #e6edf3; min-height: 100vh; }
+
+  /* HEADER */
+  .header { background: linear-gradient(135deg, #00ff87 0%, #00d4ff 100%); padding: 16px 24px; display: flex; align-items: center; gap: 16px; }
+  .header h1 { color: #0d1117; font-size: 1.3rem; font-weight: 800; letter-spacing: -0.5px; }
+  .header .sub { color: #1a2332; font-size: 0.8rem; margin-top: 2px; }
+  .badge { background: #0d1117; color: #00ff87; font-size: 0.7rem; padding: 3px 8px; border-radius: 20px; font-weight: 700; letter-spacing: 1px; }
+
+  /* LAYOUT */
+  .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  /* CARDS */
+  .card { background: #161b22; border: 1px solid #21262d; border-radius: 12px; padding: 20px; }
+  .card h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: #8b949e; margin-bottom: 16px; }
+  .card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 12px; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 4px; margin-bottom: 20px; background: #161b22; border-radius: 10px; padding: 4px; }
+  .tab { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; background: transparent; color: #8b949e; }
+  .tab.active { background: #00ff87; color: #0d1117; }
+  .tab:hover:not(.active) { background: #21262d; color: #e6edf3; }
+
+  /* FORM ELEMENTS */
+  label { font-size: 0.78rem; color: #8b949e; display: block; margin-bottom: 5px; margin-top: 12px; }
+  input[type=text], input[type=number], select {
+    width: 100%; background: #0d1117; border: 1px solid #30363d; border-radius: 6px;
+    color: #e6edf3; padding: 8px 10px; font-size: 0.85rem; outline: none; transition: border 0.2s;
+  }
+  input[type=text]:focus, input[type=number]:focus, select:focus { border-color: #00ff87; }
+  input[type=range] { width: 100%; accent-color: #00ff87; cursor: pointer; margin-top: 4px; }
+
+  .metric-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .metric-row label { margin: 0; flex: 1; font-size: 0.8rem; color: #8b949e; min-width: 120px; }
+  .metric-row input[type=range] { flex: 2; }
+  .metric-val { min-width: 40px; text-align: right; font-size: 0.85rem; font-weight: 700; color: #00ff87; }
+
+  /* BUTTONS */
+  .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 700; transition: all 0.2s; }
+  .btn-primary { background: #00ff87; color: #0d1117; }
+  .btn-primary:hover { background: #00cc6a; }
+  .btn-secondary { background: #21262d; color: #e6edf3; border: 1px solid #30363d; }
+  .btn-secondary:hover { background: #30363d; }
+  .btn-danger { background: #da3633; color: #fff; }
+  .btn-danger:hover { background: #b91c1c; }
+  .btn-row { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+
+  /* SCORE DISPLAY */
+  .score-big { font-size: 4rem; font-weight: 900; line-height: 1; }
+  .score-label { font-size: 0.75rem; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+  .score-grade { font-size: 1.1rem; font-weight: 700; margin-top: 6px; }
+
+  /* BREAKDOWN BARS */
+  .breakdown-item { margin-bottom: 10px; }
+  .breakdown-header { display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px; }
+  .breakdown-name { color: #8b949e; }
+  .breakdown-val { color: #e6edf3; font-weight: 700; }
+  .bar-track { height: 8px; background: #21262d; border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+
+  /* FLAGS */
+  .flags { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .flag { font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+  .flag-warn  { background: #3d2f00; color: #f0a500; border: 1px solid #7a5400; }
+  .flag-good  { background: #0d2b16; color: #00ff87; border: 1px solid #00803f; }
+  .flag-info  { background: #0a1f3a; color: #00d4ff; border: 1px solid #0069a8; }
+  .flag-alert { background: #2d1515; color: #ff6b6b; border: 1px solid #8b2020; }
+
+  /* COMPARISON */
+  .vs-divider { display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 900; color: #8b949e; padding: 0 10px; }
+
+  /* TRANSFER CALC */
+  .transfer-result { background: #0d1117; border: 1px solid #21262d; border-radius: 8px; padding: 16px; margin-top: 16px; }
+  .transfer-verdict { font-size: 1.1rem; font-weight: 800; }
+  .verdict-yes { color: #00ff87; }
+  .verdict-no  { color: #ff6b6b; }
+  .verdict-maybe { color: #f0a500; }
+
+  /* WEIGHT EDITOR */
+  .weight-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; }
+  .w-row { display: flex; align-items: center; gap: 6px; }
+  .w-row label { margin: 0; font-size: 0.75rem; min-width: 80px; }
+  .w-row input[type=number] { width: 52px; padding: 4px 6px; font-size: 0.78rem; }
+  .weight-total { font-size: 0.8rem; margin-top: 8px; }
+
+  /* SECTION DIVIDER */
+  .divider { border: none; border-top: 1px solid #21262d; margin: 20px 0; }
+
+  /* TOGGLE */
+  .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+  .toggle-row label { margin: 0; font-size: 0.82rem; color: #e6edf3; }
+  input[type=checkbox] { accent-color: #00ff87; width: 16px; height: 16px; cursor: pointer; }
+
+  /* FIXTURE HELPER */
+  .fixture-panel { background: #0d1117; border: 1px solid #21262d; border-radius: 10px; padding: 14px; margin-bottom: 16px; }
+  .fixture-panel summary { cursor: pointer; font-size: 0.82rem; font-weight: 700; color: #00d4ff; list-style: none; display: flex; align-items: center; gap: 6px; user-select: none; }
+  .fixture-panel summary::before { content: '▶'; font-size: 0.65rem; transition: transform 0.2s; }
+  details[open] > summary::before { transform: rotate(90deg); }
+  .fdr-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .fdr-pill { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; cursor: pointer; border: 2px solid transparent; transition: all 0.15s; }
+  .fdr-pill:hover { opacity: 0.85; }
+  .fdr-pill.active-pill { border-color: #fff; }
+  .fdr-1 { background: #0a2a1a; color: #00ff87; }
+  .fdr-2 { background: #0d3320; color: #00ff87; }
+  .fdr-3 { background: #2a2d10; color: #d4e030; }
+  .fdr-4 { background: #3a1f00; color: #f0a500; }
+  .fdr-5 { background: #3a0d0d; color: #ff6b6b; }
+  .fixture-result { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 12px; margin-top: 10px; display: none; }
+  .fixture-vs { font-size: 1rem; font-weight: 800; }
+  .fixture-meta { font-size: 0.75rem; color: #8b949e; margin-top: 4px; }
+  .fixture-apply { font-size: 0.72rem; color: #00ff87; cursor: pointer; margin-top: 8px; display: inline-block; text-decoration: underline; }
+  .api-key-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+  .api-key-row input { flex: 1; font-size: 0.78rem; padding: 6px 8px; }
+  .api-key-row .btn { padding: 6px 12px; font-size: 0.75rem; white-space: nowrap; }
+
+  /* CHIP PLANNER */
+  .chip-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 4px; }
+  .chip-card { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 12px; text-align: center; cursor: pointer; transition: all 0.2s; }
+  .chip-card.used { opacity: 0.4; }
+  .chip-card.selected { border-color: #00ff87; background: #0d2b16; }
+  .chip-card:hover:not(.used) { border-color: #8b949e; }
+  .chip-icon { font-size: 1.5rem; }
+  .chip-name { font-size: 0.7rem; font-weight: 700; margin-top: 6px; }
+  .chip-hint { font-size: 0.65rem; color: #8b949e; margin-top: 4px; }
+
+  /* TABLE */
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  th { text-align: left; padding: 8px 10px; color: #8b949e; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #21262d; }
+  td { padding: 8px 10px; border-bottom: 1px solid #161b22; }
+  tr:hover td { background: #21262d; }
+  .rank-num { font-weight: 800; color: #00ff87; }
+  .pos-badge { font-size: 0.68rem; padding: 2px 6px; border-radius: 4px; font-weight: 700; }
+  .pos-gkp { background: #1a3a1a; color: #00ff87; }
+  .pos-def { background: #1a2a3a; color: #00d4ff; }
+  .pos-mid { background: #2a2a1a; color: #f0e030; }
+  .pos-fwd { background: #3a1a1a; color: #ff6b6b; }
+
+  /* NOTICE */
+  .notice { background: #1a2332; border: 1px solid #0a3d6b; border-radius: 8px; padding: 12px 16px; font-size: 0.8rem; color: #8b949e; line-height: 1.5; }
+  .notice strong { color: #00d4ff; }
+
+  /* CANVAS CONTAINER */
+  .chart-container { position: relative; height: 220px; margin-top: 12px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="badge">FPL 2026/27</div>
+    <h1>Decision Dashboard</h1>
+    <div class="sub">Copacarrowbana FC — Weighted Probability Engine</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- TABS -->
+  <div class="tabs" style="margin-top:20px;">
+    <button class="tab active" onclick="switchTab('evaluate')">⚡ Evaluate Player</button>
+    <button class="tab" onclick="switchTab('compare')">⚖️ Compare / Transfer</button>
+    <button class="tab" onclick="switchTab('xi')">👕 Starting XI</button>
+    <button class="tab" onclick="switchTab('chips')">🃏 Chip Planner</button>
+    <button class="tab" onclick="switchTab('weights')">⚙️ Weights</button>
+  </div>
+
+  <!-- ===== TAB: EVALUATE ===== -->
+  <div id="tab-evaluate">
+    <div class="grid-2">
+      <!-- LEFT: INPUT PANEL -->
+      <div class="card">
+        <h2>Player Input</h2>
+
+        <!-- FIXTURE HELPER -->
+        <details class="fixture-panel" id="fixture-details">
+          <summary>🏟️ Fixture Lookup</summary>
+          <div style="margin-top:12px;">
+            <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:10px;">
+              <div style="flex:1;">
+                <label style="margin-top:0;">Gameweek</label>
+                <input type="number" id="gw-input" value="1" min="1" max="38" style="padding:6px 8px;font-size:0.85rem;">
+              </div>
+              <button class="btn btn-primary" onclick="loadFixtures()" style="white-space:nowrap;padding:8px 16px;">Auto Load</button>
+              <button class="btn btn-secondary" onclick="togglePasteMode()" style="white-space:nowrap;padding:8px 14px;" title="Enter fixture manually">✏️ Manual</button>
+            </div>
+
+            <!-- MANUAL ENTRY MODE -->
+            <div id="paste-mode" style="display:none;background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:12px;margin-bottom:10px;">
+              <div style="font-size:0.72rem;color:#8b949e;margin-bottom:10px;">
+                FPL API rolls over to 2026/27 when the game opens (~Aug 2026). Until then, enter fixtures manually.
+              </div>
+              <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center;margin-bottom:8px;">
+                <div>
+                  <label style="margin-top:0;font-size:0.72rem;">Home Team</label>
+                  <select id="manual-home" style="font-size:0.8rem;padding:5px 6px;"></select>
+                </div>
+                <div style="text-align:center;color:#8b949e;font-weight:700;padding-top:18px;">vs</div>
+                <div>
+                  <label style="margin-top:0;font-size:0.72rem;">Away Team</label>
+                  <select id="manual-away" style="font-size:0.8rem;padding:5px 6px;"></select>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;">
+                <div>
+                  <label style="margin-top:0;font-size:0.72rem;">Home FDR</label>
+                  <select id="manual-hfdr" style="font-size:0.8rem;padding:5px 6px;">
+                    <option value="1">1 — Easiest</option>
+                    <option value="2">2 — Very Easy</option>
+                    <option value="3" selected>3 — Moderate</option>
+                    <option value="4">4 — Difficult</option>
+                    <option value="5">5 — Very Hard</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="margin-top:0;font-size:0.72rem;">Away FDR</label>
+                  <select id="manual-afdr" style="font-size:0.8rem;padding:5px 6px;">
+                    <option value="1">1 — Easiest</option>
+                    <option value="2">2 — Very Easy</option>
+                    <option value="3" selected>3 — Moderate</option>
+                    <option value="4">4 — Difficult</option>
+                    <option value="5">5 — Very Hard</option>
+                  </select>
+                </div>
+              </div>
+              <div style="margin-bottom:10px;">
+                <label style="margin-top:0;font-size:0.72rem;">Kickoff (optional)</label>
+                <input type="text" id="manual-ko" placeholder="e.g. Thu 21 Aug 20:00" style="font-size:0.8rem;padding:5px 8px;">
+              </div>
+              <button class="btn btn-primary" onclick="addManualFixture()" style="width:100%;">Add Fixture</button>
+            </div>
+
+            <div id="fixture-status" style="font-size:0.75rem;color:#8b949e;min-height:18px;"></div>
+            <div id="fixture-list" style="margin-top:8px;"></div>
+          </div>
+          <div style="margin-top:14px;">
+            <div style="font-size:0.72rem;color:#8b949e;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">FDR Quick Reference — click to set</div>
+            <div class="fdr-pills">
+              <span class="fdr-pill fdr-1" onclick="setFDR(1)">FDR 1 — Easiest</span>
+              <span class="fdr-pill fdr-2" onclick="setFDR(2)">FDR 2 — Very Easy</span>
+              <span class="fdr-pill fdr-3" onclick="setFDR(3)">FDR 3 — Moderate</span>
+              <span class="fdr-pill fdr-4" onclick="setFDR(4)">FDR 4 — Difficult</span>
+              <span class="fdr-pill fdr-5" onclick="setFDR(5)">FDR 5 — Very Hard</span>
+            </div>
+          </div>
+        </details>
+
+        <label>Player Name</label>
+        <input type="text" id="p1name" placeholder="e.g. Salah" value="">
+
+        <label>Position</label>
+        <select id="p1pos" onchange="updatePositionMode(1)">
+          <option value="mid">MID</option>
+          <option value="fwd">FWD</option>
+          <option value="def">DEF</option>
+          <option value="gkp">GKP</option>
+        </select>
+
+        <label>Decision Type</label>
+        <select id="p1decision" onchange="renderBreakdown()">
+          <option value="captain">Captain</option>
+          <option value="transfer">Transfer In</option>
+          <option value="starting_xi">Starting XI</option>
+          <option value="bench">Bench</option>
+        </select>
+
+        <hr class="divider">
+        <h2>Metrics</h2>
+
+        <div class="metric-row"><label>Form (pts/GW, 0–12)</label><input type="range" id="m_form" min="0" max="12" step="0.1" value="6" oninput="syncVal(this,'v_form');renderBreakdown()"><span class="metric-val" id="v_form">6.0</span></div>
+        <div id="xg-row" class="metric-row"><label>xG per 90 (0–1.0)</label><input type="range" id="m_xg" min="0" max="1" step="0.01" value="0.3" oninput="syncVal(this,'v_xg');renderBreakdown()"><span class="metric-val" id="v_xg">0.30</span></div>
+        <div id="xa-row" class="metric-row"><label>xA per 90 (0–0.6)</label><input type="range" id="m_xa" min="0" max="0.6" step="0.01" value="0.15" oninput="syncVal(this,'v_xa');renderBreakdown()"><span class="metric-val" id="v_xa">0.15</span></div>
+        <div id="xgc-row" class="metric-row" style="display:none"><label>xGC per 90 (0–3.0)</label><input type="range" id="m_xgc" min="0" max="3" step="0.05" value="1.0" oninput="syncVal(this,'v_xgc');renderBreakdown()"><span class="metric-val" id="v_xgc">1.00</span></div>
+        <div class="metric-row"><label>FDR (1=Easiest, 5=Hard)</label><input type="range" id="m_fdr" min="1" max="5" step="1" value="3" oninput="syncVal(this,'v_fdr');renderBreakdown()"><span class="metric-val" id="v_fdr">3</span></div>
+        <div class="metric-row"><label>Minutes % (0–100)</label><input type="range" id="m_mins" min="0" max="100" step="1" value="80" oninput="syncVal(this,'v_mins');renderBreakdown()"><span class="metric-val" id="v_mins">80</span></div>
+        <div class="metric-row"><label>H2H score (0–1)</label><input type="range" id="m_h2h" min="0" max="1" step="0.05" value="0.5" oninput="syncVal(this,'v_h2h');renderBreakdown()"><span class="metric-val" id="v_h2h">0.50</span></div>
+        <div class="metric-row"><label>Mgr H2H win rate (0–1)</label><input type="range" id="m_mgr" min="0" max="1" step="0.05" value="0.33" oninput="syncVal(this,'v_mgr');renderBreakdown()"><span class="metric-val" id="v_mgr">0.33</span></div>
+
+        <hr class="divider">
+        <h2>Modifiers</h2>
+
+        <label>Home or Away?</label>
+        <select id="m_venue" onchange="renderBreakdown()">
+          <option value="home">Home</option>
+          <option value="away">Away</option>
+        </select>
+
+        <div class="toggle-row"><input type="checkbox" id="m_dgw" onchange="renderBreakdown()"><label for="m_dgw">Double Gameweek (×1.8 fixture multiplier)</label></div>
+        <div class="toggle-row"><input type="checkbox" id="m_bgw" onchange="renderBreakdown()"><label for="m_bgw">Blank Gameweek (no fixture)</label></div>
+        <div class="toggle-row"><input type="checkbox" id="m_pen" onchange="renderBreakdown()"><label for="m_pen">Penalty taker (+0.25 xG/90)</label></div>
+        <div class="toggle-row"><input type="checkbox" id="m_spc" onchange="renderBreakdown()"><label for="m_spc">Set piece specialist (+0.08 xA/90)</label></div>
+        <div class="toggle-row"><input type="checkbox" id="m_rot" onchange="renderBreakdown()"><label for="m_rot">Rotation risk (UCL/EL midweek)</label></div>
+        <div class="toggle-row"><input type="checkbox" id="m_ret" onchange="renderBreakdown()"><label for="m_ret">Returning from injury (minute cap)</label></div>
+
+        <div class="metric-row" style="margin-top:12px;"><label>Goals scored vs xG total (overperf check)</label><input type="range" id="m_ops" min="0" max="2" step="0.05" value="1.0" oninput="syncVal(this,'v_ops');renderBreakdown()"><span class="metric-val" id="v_ops">1.00</span></div>
+        <small style="color:#8b949e;font-size:0.72rem;">Ratio of actual goals ÷ cumulative xG. >1.5 triggers penalty.</small>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="renderBreakdown()">Calculate Score</button>
+          <button class="btn btn-secondary" onclick="resetForm(1)">Reset</button>
+        </div>
+      </div>
+
+      <!-- RIGHT: OUTPUT PANEL -->
+      <div>
+        <div class="card" style="margin-bottom:20px;">
+          <h2>Score</h2>
+          <div style="display:flex;align-items:flex-end;gap:16px;">
+            <div>
+              <div class="score-big" id="out-score" style="color:#00ff87;">—</div>
+              <div class="score-label">Composite (0–100)</div>
+              <div class="score-grade" id="out-grade">Enter metrics to evaluate</div>
+            </div>
+            <div style="flex:1;text-align:right;">
+              <div id="out-ownership" style="font-size:0.75rem;color:#8b949e;"></div>
+            </div>
+          </div>
+          <div class="flags" id="out-flags"></div>
+        </div>
+
+        <div class="card">
+          <h2>Score Breakdown</h2>
+          <div id="breakdown-bars"></div>
+          <div class="chart-container">
+            <canvas id="radarChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SAVED PLAYERS TABLE -->
+    <div class="card" style="margin-top:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h2>Session Shortlist</h2>
+        <button class="btn btn-secondary" onclick="clearShortlist()" style="font-size:0.75rem;padding:6px 12px;">Clear All</button>
+      </div>
+      <div id="shortlist-notice" class="notice" style="margin-top:8px;">
+        <strong>No players added yet.</strong> Calculate a score then press "Add to Shortlist" to compare candidates.
+      </div>
+      <table id="shortlist-table" style="display:none;margin-top:8px;">
+        <thead>
+          <tr>
+            <th>#</th><th>Player</th><th>Pos</th><th>Decision</th><th>Score</th><th>Top Factor</th><th>Flags</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="shortlist-body"></tbody>
+      </table>
+      <div class="btn-row" id="add-btn-row" style="display:none;">
+        <button class="btn btn-primary" onclick="addToShortlist()">+ Add to Shortlist</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TAB: COMPARE / TRANSFER ===== -->
+  <div id="tab-compare" style="display:none;">
+    <div class="notice" style="margin-bottom:16px;">
+      <strong>Transfer Calculator:</strong> Set up Player A (outgoing) and Player B (incoming), pick the decision type, and get a recommendation on whether the transfer — including any hit cost — is justified.
+    </div>
+    <div class="grid-2" style="align-items:start;">
+
+      <!-- PLAYER A -->
+      <div class="card">
+        <h2 style="color:#ff6b6b;">▼ Player Out (A)</h2>
+        <label>Name</label><input type="text" id="c_a_name" placeholder="e.g. Szoboszlai" value="">
+        <label>Position</label>
+        <select id="c_a_pos"><option value="mid">MID</option><option value="fwd">FWD</option><option value="def">DEF</option><option value="gkp">GKP</option></select>
+        <label>Form</label><input type="number" id="ca_form" value="5" step="0.1" min="0" max="12">
+        <label>xG/90</label><input type="number" id="ca_xg" value="0.15" step="0.01" min="0" max="1">
+        <label>xA/90</label><input type="number" id="ca_xa" value="0.10" step="0.01" min="0" max="0.6">
+        <label>FDR (next GW)</label><input type="number" id="ca_fdr" value="3" step="1" min="2" max="5">
+        <label>Minutes %</label><input type="number" id="ca_mins" value="70" step="1" min="0" max="100">
+        <label>H2H score</label><input type="number" id="ca_h2h" value="0.5" step="0.05" min="0" max="1">
+        <label>Mgr H2H</label><input type="number" id="ca_mgr" value="0.33" step="0.05" min="0" max="1">
+        <div class="toggle-row" style="margin-top:10px;"><input type="checkbox" id="ca_home"><label for="ca_home">Home fixture</label></div>
+        <div class="toggle-row"><input type="checkbox" id="ca_dgw"><label for="ca_dgw">DGW</label></div>
+        <div class="toggle-row"><input type="checkbox" id="ca_bgw"><label for="ca_bgw">BGW (no fixture)</label></div>
+        <div class="toggle-row"><input type="checkbox" id="ca_rot"><label for="ca_rot">Rotation risk</label></div>
+      </div>
+
+      <!-- PLAYER B -->
+      <div class="card">
+        <h2 style="color:#00ff87;">▲ Player In (B)</h2>
+        <label>Name</label><input type="text" id="c_b_name" placeholder="e.g. Palmer" value="">
+        <label>Position</label>
+        <select id="c_b_pos"><option value="mid">MID</option><option value="fwd">FWD</option><option value="def">DEF</option><option value="gkp">GKP</option></select>
+        <label>Form</label><input type="number" id="cb_form" value="8" step="0.1" min="0" max="12">
+        <label>xG/90</label><input type="number" id="cb_xg" value="0.35" step="0.01" min="0" max="1">
+        <label>xA/90</label><input type="number" id="cb_xa" value="0.20" step="0.01" min="0" max="0.6">
+        <label>FDR (next GW)</label><input type="number" id="cb_fdr" value="2" step="1" min="2" max="5">
+        <label>Minutes %</label><input type="number" id="cb_mins" value="90" step="1" min="0" max="100">
+        <label>H2H score</label><input type="number" id="cb_h2h" value="0.5" step="0.05" min="0" max="1">
+        <label>Mgr H2H</label><input type="number" id="cb_mgr" value="0.33" step="0.05" min="0" max="1">
+        <div class="toggle-row" style="margin-top:10px;"><input type="checkbox" id="cb_home" checked><label for="cb_home">Home fixture</label></div>
+        <div class="toggle-row"><input type="checkbox" id="cb_dgw"><label for="cb_dgw">DGW</label></div>
+        <div class="toggle-row"><input type="checkbox" id="cb_bgw"><label for="cb_bgw">BGW (no fixture)</label></div>
+        <div class="toggle-row"><input type="checkbox" id="cb_rot"><label for="cb_rot">Rotation risk</label></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <h2>Transfer Settings</h2>
+      <div class="grid-3">
+        <div>
+          <label>Decision Type</label>
+          <select id="c_decision">
+            <option value="transfer">Transfer</option>
+            <option value="captain">Captain</option>
+            <option value="starting_xi">Starting XI</option>
+            <option value="bench">Bench</option>
+          </select>
+        </div>
+        <div>
+          <label>Free transfers available</label>
+          <select id="c_ft">
+            <option value="2">2 (no hit)</option>
+            <option value="1" selected>1 (no hit)</option>
+            <option value="0">0 (−4pt hit)</option>
+          </select>
+        </div>
+        <div>
+          <label>Ownership context</label>
+          <select id="c_own">
+            <option value="template">Template move</option>
+            <option value="differential">Differential</option>
+            <option value="green">Green arrow chase</option>
+          </select>
+        </div>
+      </div>
+      <div class="btn-row"><button class="btn btn-primary" onclick="calcTransfer()">Evaluate Transfer</button></div>
+
+      <div id="transfer-result" style="display:none;" class="transfer-result">
+        <div class="grid-2">
+          <div>
+            <div style="font-size:0.75rem;color:#8b949e;margin-bottom:8px;">SCORE COMPARISON</div>
+            <div style="display:flex;gap:16px;align-items:center;">
+              <div style="text-align:center;"><div style="font-size:2rem;font-weight:900;color:#ff6b6b;" id="tr-score-a">—</div><div style="font-size:0.72rem;color:#8b949e;" id="tr-name-a">Player Out</div></div>
+              <div class="vs-divider">→</div>
+              <div style="text-align:center;"><div style="font-size:2rem;font-weight:900;color:#00ff87;" id="tr-score-b">—</div><div style="font-size:0.72rem;color:#8b949e;" id="tr-name-b">Player In</div></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:0.75rem;color:#8b949e;margin-bottom:8px;">VERDICT</div>
+            <div class="transfer-verdict" id="tr-verdict">—</div>
+            <div id="tr-reasoning" style="font-size:0.8rem;color:#8b949e;margin-top:8px;line-height:1.5;"></div>
+          </div>
+        </div>
+        <div class="chart-container" style="height:180px;margin-top:16px;"><canvas id="compareChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TAB: STARTING XI ===== -->
+  <div id="tab-xi" style="display:none;">
+    <div class="notice" style="margin-bottom:16px;">
+      <strong>Starting XI Builder:</strong> Add up to 15 squad players with their scores, then click "Build XI" to apply FPL formation constraints (1 GKP, 3–5 DEF, 2–5 MID, 1–3 FWD) and pick the optimal 11.
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h2>Add Squad Player</h2>
+        <label>Name</label><input type="text" id="xi_name" placeholder="Player name">
+        <label>Position</label>
+        <select id="xi_pos">
+          <option value="gkp">GKP</option>
+          <option value="def">DEF</option>
+          <option value="mid">MID</option>
+          <option value="fwd">FWD</option>
+        </select>
+        <label>Starting XI Score (0–100)</label>
+        <input type="number" id="xi_score" value="65" min="0" max="100">
+        <div class="toggle-row" style="margin-top:8px;"><input type="checkbox" id="xi_doubt"><label for="xi_doubt">Doubt / injury flag</label></div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="addXIPlayer()">Add Player</button>
+          <button class="btn btn-secondary" onclick="clearXI()">Clear Squad</button>
+          <button class="btn btn-secondary" onclick="exportSquad()" title="Download squad as JSON">⬇ Export</button>
+          <label class="btn btn-secondary" style="cursor:pointer;" title="Load squad from JSON">⬆ Import<input type="file" accept=".json" onchange="importSquad(event)" style="display:none;"></label>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Squad</h2>
+        <table id="xi-squad-table">
+          <thead><tr><th>Player</th><th>Pos</th><th>Score</th><th>Status</th><th></th></tr></thead>
+          <tbody id="xi-squad-body"></tbody>
+        </table>
+        <div class="btn-row" style="margin-top:16px;">
+          <button class="btn btn-primary" onclick="buildXI()">Build Optimal XI</button>
+        </div>
+      </div>
+    </div>
+    <div id="xi-result" style="display:none;" class="card" style="margin-top:20px;">
+      <h2>Recommended Starting XI</h2>
+      <div id="xi-output"></div>
+    </div>
+  </div>
+
+  <!-- ===== TAB: CHIP PLANNER ===== -->
+  <div id="tab-chips" style="display:none;">
+    <div class="grid-2">
+      <div class="card">
+        <h2>Available Chips — 2026/27</h2>
+        <div class="chip-grid">
+          <div class="chip-card" id="chip-wc1" onclick="toggleChip('wc1')">
+            <div class="chip-icon">🃏</div>
+            <div class="chip-name">WILDCARD 1</div>
+            <div class="chip-hint">GW1–19 window</div>
+          </div>
+          <div class="chip-card" id="chip-wc2" onclick="toggleChip('wc2')">
+            <div class="chip-icon">🃏</div>
+            <div class="chip-name">WILDCARD 2</div>
+            <div class="chip-hint">GW20–38 window</div>
+          </div>
+          <div class="chip-card" id="chip-tc1" onclick="toggleChip('tc1')">
+            <div class="chip-icon">⭐</div>
+            <div class="chip-name">TRIPLE CAPTAIN 1</div>
+            <div class="chip-hint">Best in DGW</div>
+          </div>
+          <div class="chip-card" id="chip-tc2" onclick="toggleChip('tc2')">
+            <div class="chip-icon">⭐</div>
+            <div class="chip-name">TRIPLE CAPTAIN 2</div>
+            <div class="chip-hint">Best in DGW</div>
+          </div>
+          <div class="chip-card" id="chip-bb" onclick="toggleChip('bb')">
+            <div class="chip-icon">🚀</div>
+            <div class="chip-name">BENCH BOOST</div>
+            <div class="chip-hint">Best in DGW</div>
+          </div>
+          <div class="chip-card" id="chip-fh" onclick="toggleChip('fh')">
+            <div class="chip-icon">🔄</div>
+            <div class="chip-name">FREE HIT</div>
+            <div class="chip-hint">Best in BGW</div>
+          </div>
+        </div>
+        <p style="font-size:0.75rem;color:#8b949e;margin-top:12px;">⚠️ Verify chip rules on the FPL site before each season — rules can change year-on-year (e.g. 2× TC was new in 2025/26).</p>
+      </div>
+
+      <div class="card">
+        <h2>Chip Deployment Guide</h2>
+        <div class="breakdown-item">
+          <div style="color:#00ff87;font-weight:700;font-size:0.85rem;">🃏 Wildcard</div>
+          <p style="font-size:0.8rem;color:#8b949e;margin-top:6px;line-height:1.5;">Use when squad has ≥3 premium assets to replace, or before a run of fixtures where the current squad is poorly positioned. Activating before a DGW round maximises value. Do not waste on single-position fixes.</p>
+        </div>
+        <hr class="divider">
+        <div class="breakdown-item">
+          <div style="color:#f0a500;font-weight:700;font-size:0.85rem;">⭐ Triple Captain</div>
+          <p style="font-size:0.8rem;color:#8b949e;margin-top:6px;line-height:1.5;">Maximum value on a DGW with your captain scoring 2+ fixtures. Target H (Home) fixture in DGW with easy FDR. Engine captain score >80 recommended before using TC.</p>
+        </div>
+        <hr class="divider">
+        <div class="breakdown-item">
+          <div style="color:#00d4ff;font-weight:700;font-size:0.85rem;">🚀 Bench Boost</div>
+          <p style="font-size:0.8rem;color:#8b949e;margin-top:6px;line-height:1.5;">Save for a DGW where your bench has ≥3 players with fixtures. Bench average needs to be strong — a typical bench in a non-DGW averages ~4–6 pts; in a DGW this can be 15–25 pts.</p>
+        </div>
+        <hr class="divider">
+        <div class="breakdown-item">
+          <div style="color:#ff6b6b;font-weight:700;font-size:0.85rem;">🔄 Free Hit</div>
+          <p style="font-size:0.8rem;color:#8b949e;margin-top:6px;line-height:1.5;">Best used in a BGW to field 11 players with fixtures. Squad reverts after the GW — plan temporary XI around that week's fixtures only, ignoring long-term value.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <h2>GW Planner Notes</h2>
+      <div class="notice">
+        <strong>World Cup 2026 fatigue note (GW1–3):</strong> Players with deep tournament runs (semi-final or final) return with as little as 4 weeks before PL GW1. England, France, Brazil, Argentina, Spain, Germany players are highest risk for rotation or reduced minutes in GW1.
+        Consider FH in GW1 if your squad is heavily WC-fatigued and you don't want to burn a Wildcard.
+      </div>
+      <div style="margin-top:16px;">
+        <label>Notes (saved in session)</label>
+        <textarea id="chip-notes" style="width:100%;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;padding:10px;font-size:0.82rem;resize:vertical;min-height:80px;outline:none;" placeholder="e.g. GW6 potential DGW — save TC1..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TAB: WEIGHTS ===== -->
+  <div id="tab-weights" style="display:none;">
+    <div class="grid-2">
+      <div id="weights-cards"></div>
+      <div class="card">
+        <h2>Weight Rationale</h2>
+        <p style="font-size:0.82rem;color:#8b949e;line-height:1.7;">
+          <strong style="color:#e6edf3;">Captain:</strong> Form (0.30) and xG (0.25) dominate — we need ceiling, not consistency. Minutes weight is near-zero because premium captains almost always start.<br><br>
+          <strong style="color:#e6edf3;">Transfer:</strong> Fixture run (0.32) is the dominant factor across a 3-GW horizon. Buying a player into a blank costs more than any form difference.<br><br>
+          <strong style="color:#e6edf3;">Bench:</strong> Minutes reliability (0.48) dominates — we need players who will play, regardless of quality.<br><br>
+          <strong style="color:#e6edf3;">Starting XI:</strong> Balanced across form (0.25), xG (0.20), and fixture (0.22). More conservative than captain.<br><br>
+          <strong style="color:#00ff87;">Edit weights</strong> and press "Save Custom Weights" to apply them to the evaluate tab for this session.
+        </p>
+        <div class="btn-row" style="margin-top:20px;">
+          <button class="btn btn-primary" onclick="saveWeights()">Save Custom Weights</button>
+          <button class="btn btn-secondary" onclick="resetWeights()">Reset to Defaults</button>
+        </div>
+        <div id="weight-save-msg" style="font-size:0.78rem;color:#00ff87;margin-top:8px;display:none;">✓ Weights saved and active</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const DEFAULT_WEIGHTS = {
+  captain:     {form:0.30, xg90:0.25, xa90:0.10, fixture:0.20, home:0.05, h2h:0.05, mgr_h2h:0.03, minutes:0.02},
+  transfer:    {form:0.13, xg90:0.20, xa90:0.10, fixture:0.32, home:0.04, h2h:0.05, mgr_h2h:0.04, minutes:0.12},
+  bench:       {form:0.13, xg90:0.07, xa90:0.04, fixture:0.18, home:0.04, h2h:0.04, mgr_h2h:0.02, minutes:0.48},
+  starting_xi: {form:0.25, xg90:0.20, xa90:0.10, fixture:0.22, home:0.05, h2h:0.05, mgr_h2h:0.03, minutes:0.10},
+};
+
+let WEIGHTS = JSON.parse(JSON.stringify(DEFAULT_WEIGHTS));
+let shortlist = [];
+let xiSquad = [];
+let radarChart = null;
+let compareChart = null;
+let lastScore = null;
+let lastBreakdown = null;
+let lastFlags = [];
+
+const METRIC_LABELS = {
+  form: 'Form', xg90: 'xG/90', xa90: 'xA/90', fixture: 'Fixture',
+  home: 'Home/Away', h2h: 'H2H', mgr_h2h: 'Mgr H2H', minutes: 'Minutes'
+};
+
+const BAR_COLORS = [
+  '#00ff87','#00d4ff','#f0e030','#ff9f40','#ff6b6b','#c77dff','#9ef01a','#48cae4'
+];
+
+// ============================================================
+// UTIL
+// ============================================================
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+function norm(v, lo, hi) { return clamp((v - lo) / (hi - lo), 0, 1); }
+function fdrToScore(fdr, home) {
+  const base = {1:1.0,2:0.90,3:0.65,4:0.38,5:0.18}[fdr] || 0.65;
+  return clamp(base + (home ? 0.08 : 0), 0, 1);
+}
+function syncVal(el, valId) {
+  const v = parseFloat(el.value);
+  const decimals = el.step && el.step.includes('.') ? el.step.split('.')[1].length : 0;
+  document.getElementById(valId).textContent = v.toFixed(decimals);
+}
+function grade(s) {
+  if (s >= 85) return {label:'Elite 🔥', color:'#00ff87'};
+  if (s >= 70) return {label:'Strong ✅', color:'#9ef01a'};
+  if (s >= 55) return {label:'Decent 👍', color:'#f0e030'};
+  if (s >= 40) return {label:'Average ⚠️', color:'#f0a500'};
+  return {label:'Weak ❌', color:'#ff6b6b'};
+}
+
+// ============================================================
+// SCORE CALCULATION
+// ============================================================
+function calcScore(opts) {
+  const w = WEIGHTS[opts.decision] || WEIGHTS.captain;
+
+  // Build normalised metrics
+  let form = norm(opts.form, 0, 12);
+  let xg = norm(opts.xg, 0, 1.0);
+  let xa = norm(opts.xa, 0, 0.6);
+  let mins = norm(opts.mins, 0, 100);
+  let h2h = clamp(opts.h2h, 0, 1);
+  let mgr = clamp(opts.mgr, 0, 1);
+
+  // Modifiers
+  if (opts.pen) xg = clamp(xg + norm(0.25, 0, 1.0), 0, 1);
+  if (opts.spc) xa = clamp(xa + norm(0.08, 0, 0.6), 0, 1);
+  if (opts.rot) mins = clamp(mins * 0.75, 0, 1);
+  if (opts.ret) mins = clamp(mins * 0.65, 0, 1);
+
+  // Fixture score
+  let fixtureScore = opts.bgw ? 0 : fdrToScore(opts.fdr, opts.home);
+  if (opts.dgw && !opts.bgw) fixtureScore = clamp(fixtureScore * 1.8, 0, 1);
+  const homeScore = opts.home ? 1.0 : 0.35;
+
+  // xGC mode for GKP/DEF
+  let xg90_metric = xg;
+  if (opts.pos === 'gkp' || opts.pos === 'def') {
+    xg90_metric = clamp(1 - norm(opts.xgc || 1.0, 0, 3.0), 0, 1);
+  }
+
+  const components = {
+    form, xg90: xg90_metric, xa90: xa, fixture: fixtureScore,
+    home: homeScore, h2h, mgr_h2h: mgr, minutes: mins
+  };
+
+  let raw = 0;
+  const breakdown = {};
+  for (const [k, wv] of Object.entries(w)) {
+    const contrib = wv * (components[k] || 0) * 100;
+    breakdown[k] = { weight: wv, norm: components[k] || 0, contrib };
+    raw += contrib;
+  }
+
+  // Overperformance penalty
+  let penalty = 0;
+  if (opts.ops > 1.5) {
+    penalty = clamp((opts.ops - 1.5) * 0.16, 0, 0.08) * 100;
+  }
+
+  const score = clamp(Math.round(raw - penalty), 0, 100);
+  return { score, breakdown, penalty };
+}
+
+// ============================================================
+// RENDER EVALUATE TAB
+// ============================================================
+function updatePositionMode(p) {
+  const pos = document.getElementById('p1pos').value;
+  const isDefensive = pos === 'gkp' || pos === 'def';
+  document.getElementById('xg-row').style.display = isDefensive ? 'none' : 'flex';
+  document.getElementById('xa-row').style.display = isDefensive ? 'none' : 'flex';
+  document.getElementById('xgc-row').style.display = isDefensive ? 'flex' : 'none';
+  renderBreakdown();
+}
+
+function getFormInputs() {
+  return {
+    name: document.getElementById('p1name').value || 'Player',
+    pos: document.getElementById('p1pos').value,
+    decision: document.getElementById('p1decision').value,
+    form: parseFloat(document.getElementById('m_form').value),
+    xg: parseFloat(document.getElementById('m_xg').value),
+    xa: parseFloat(document.getElementById('m_xa').value),
+    xgc: parseFloat(document.getElementById('m_xgc').value),
+    fdr: parseInt(document.getElementById('m_fdr').value),
+    mins: parseInt(document.getElementById('m_mins').value),
+    h2h: parseFloat(document.getElementById('m_h2h').value),
+    mgr: parseFloat(document.getElementById('m_mgr').value),
+    home: document.getElementById('m_venue').value === 'home',
+    dgw: document.getElementById('m_dgw').checked,
+    bgw: document.getElementById('m_bgw').checked,
+    pen: document.getElementById('m_pen').checked,
+    spc: document.getElementById('m_spc').checked,
+    rot: document.getElementById('m_rot').checked,
+    ret: document.getElementById('m_ret').checked,
+    ops: parseFloat(document.getElementById('m_ops').value),
+  };
+}
+
+function renderBreakdown() {
+  const opts = getFormInputs();
+  const result = calcScore(opts);
+  lastScore = result.score;
+  lastBreakdown = result.breakdown;
+  lastFlags = [];
+
+  // Flags
+  const flags = [];
+  if (opts.bgw) flags.push({t:'BGW — No fixture',c:'flag-alert'});
+  if (opts.dgw) flags.push({t:'DGW — Double fixture',c:'flag-good'});
+  if (opts.pen) flags.push({t:'Penalty taker',c:'flag-good'});
+  if (opts.spc) flags.push({t:'Set piece taker',c:'flag-good'});
+  if (opts.rot) flags.push({t:'Rotation risk',c:'flag-warn'});
+  if (opts.ret) flags.push({t:'Return from injury',c:'flag-warn'});
+  if (result.penalty > 0) flags.push({t:`xG overperf penalty −${result.penalty.toFixed(1)}`,c:'flag-warn'});
+  if (opts.h2h < 0.35) flags.push({t:'Poor H2H history',c:'flag-warn'});
+  if (opts.h2h === 0.5) flags.push({t:'H2H: neutral (no data)',c:'flag-info'});
+  if (opts.mgr === 0.33) flags.push({t:'Mgr H2H: neutral (no data)',c:'flag-info'});
+  if (opts.mins < 40) flags.push({t:'Low minutes risk',c:'flag-alert'});
+  if (opts.fdr >= 4) flags.push({t:'Tough fixture',c:'flag-warn'});
+  lastFlags = flags;
+
+  // Score
+  const g = grade(result.score);
+  document.getElementById('out-score').textContent = result.score;
+  document.getElementById('out-score').style.color = g.color;
+  document.getElementById('out-grade').textContent = g.label;
+  document.getElementById('out-grade').style.color = g.color;
+
+  // Flags
+  const fEl = document.getElementById('out-flags');
+  fEl.innerHTML = flags.map(f => `<span class="flag ${f.c}">${f.t}</span>`).join('');
+
+  // Breakdown bars
+  const bEl = document.getElementById('breakdown-bars');
+  const entries = Object.entries(result.breakdown).sort((a,b) => b[1].contrib - a[1].contrib);
+  bEl.innerHTML = entries.map(([k, d], i) => `
+    <div class="breakdown-item">
+      <div class="breakdown-header">
+        <span class="breakdown-name">${METRIC_LABELS[k]} <span style="color:#30363d;font-size:0.7rem;">(w=${(d.weight*100).toFixed(0)}%)</span></span>
+        <span class="breakdown-val">+${d.contrib.toFixed(1)}</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.min(d.contrib,30)/30*100}%;background:${BAR_COLORS[i%BAR_COLORS.length]};"></div></div>
+    </div>`).join('');
+
+  // Radar
+  renderRadar(result.breakdown, opts.decision);
+  document.getElementById('add-btn-row').style.display = 'flex';
+}
+
+function renderRadar(breakdown, decision) {
+  const labels = Object.values(METRIC_LABELS);
+  const data = Object.keys(METRIC_LABELS).map(k => breakdown[k] ? breakdown[k].norm * 100 : 0);
+
+  if (radarChart) radarChart.destroy();
+  radarChart = new Chart(document.getElementById('radarChart'), {
+    type: 'radar',
+    data: {
+      labels,
+      datasets: [{
+        label: document.getElementById('p1name').value || 'Player',
+        data,
+        backgroundColor: 'rgba(0,255,135,0.1)',
+        borderColor: '#00ff87',
+        pointBackgroundColor: '#00ff87',
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        r: {
+          min: 0, max: 100,
+          ticks: { display: false },
+          grid: { color: '#21262d' },
+          pointLabels: { color: '#8b949e', font: { size: 11 } }
+        }
+      }
+    }
+  });
+}
+
+function resetForm(p) {
+  document.getElementById('p1name').value = '';
+  document.getElementById('m_form').value = 6;
+  document.getElementById('v_form').textContent = '6.0';
+  document.getElementById('m_xg').value = 0.3;
+  document.getElementById('v_xg').textContent = '0.30';
+  document.getElementById('m_xa').value = 0.15;
+  document.getElementById('v_xa').textContent = '0.15';
+  document.getElementById('m_xgc').value = 1.0;
+  document.getElementById('v_xgc').textContent = '1.00';
+  document.getElementById('m_fdr').value = 3;
+  document.getElementById('v_fdr').textContent = '3';
+  document.getElementById('m_mins').value = 80;
+  document.getElementById('v_mins').textContent = '80';
+  document.getElementById('m_h2h').value = 0.5;
+  document.getElementById('v_h2h').textContent = '0.50';
+  document.getElementById('m_mgr').value = 0.33;
+  document.getElementById('v_mgr').textContent = '0.33';
+  document.getElementById('m_ops').value = 1.0;
+  document.getElementById('v_ops').textContent = '1.00';
+  ['m_dgw','m_bgw','m_pen','m_spc','m_rot','m_ret'].forEach(id => document.getElementById(id).checked = false);
+  document.getElementById('m_venue').value = 'home';
+  document.getElementById('out-score').textContent = '—';
+  document.getElementById('out-grade').textContent = 'Enter metrics to evaluate';
+  document.getElementById('out-flags').innerHTML = '';
+  document.getElementById('breakdown-bars').innerHTML = '';
+  if (radarChart) { radarChart.destroy(); radarChart = null; }
+  document.getElementById('add-btn-row').style.display = 'none';
+  lastScore = null;
+}
+
+// ============================================================
+// SHORTLIST
+// ============================================================
+function addToShortlist() {
+  if (lastScore === null) return;
+  const opts = getFormInputs();
+  const topFactor = Object.entries(lastBreakdown).sort((a,b) => b[1].contrib - a[1].contrib)[0];
+  shortlist.push({
+    name: opts.name,
+    pos: opts.pos,
+    decision: opts.decision,
+    score: lastScore,
+    topFactor: METRIC_LABELS[topFactor[0]],
+    flags: lastFlags.map(f => f.t),
+  });
+  renderShortlist();
+}
+
+function renderShortlist() {
+  const tbl = document.getElementById('shortlist-table');
+  const body = document.getElementById('shortlist-body');
+  const notice = document.getElementById('shortlist-notice');
+  if (shortlist.length === 0) { tbl.style.display='none'; notice.style.display='block'; return; }
+  tbl.style.display = 'table';
+  notice.style.display = 'none';
+  const sorted = [...shortlist].sort((a,b) => b.score - a.score);
+  body.innerHTML = sorted.map((p, i) => {
+    const g = grade(p.score);
+    const posClass = {gkp:'pos-gkp',def:'pos-def',mid:'pos-mid',fwd:'pos-fwd'}[p.pos] || '';
+    return `<tr>
+      <td class="rank-num">${i+1}</td>
+      <td><strong>${p.name}</strong></td>
+      <td><span class="pos-badge ${posClass}">${p.pos.toUpperCase()}</span></td>
+      <td style="color:#8b949e;font-size:0.78rem;">${p.decision}</td>
+      <td><span style="color:${g.color};font-weight:800;">${p.score}</span></td>
+      <td style="color:#8b949e;font-size:0.78rem;">${p.topFactor}</td>
+      <td style="font-size:0.72rem;color:#8b949e;">${p.flags.slice(0,2).join(', ')}</td>
+      <td><button class="btn btn-danger" style="padding:3px 8px;font-size:0.72rem;" onclick="removeFromShortlist(${shortlist.indexOf(p)})">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function removeFromShortlist(i) { shortlist.splice(i, 1); renderShortlist(); }
+function clearShortlist() { shortlist = []; renderShortlist(); }
+
+// ============================================================
+// TRANSFER CALCULATOR
+// ============================================================
+function getPlayerFromForm(prefix) {
+  return {
+    name: document.getElementById(`c_${prefix}_name`).value || (prefix==='a'?'Player Out':'Player In'),
+    pos: document.getElementById(`c_${prefix}_pos`).value,
+    decision: document.getElementById('c_decision').value,
+    form: parseFloat(document.getElementById(`c${prefix}_form`).value),
+    xg: parseFloat(document.getElementById(`c${prefix}_xg`).value),
+    xa: parseFloat(document.getElementById(`c${prefix}_xa`).value),
+    xgc: 1.0, ops: 1.0,
+    fdr: parseInt(document.getElementById(`c${prefix}_fdr`).value),
+    mins: parseInt(document.getElementById(`c${prefix}_mins`).value),
+    h2h: parseFloat(document.getElementById(`c${prefix}_h2h`).value),
+    mgr: parseFloat(document.getElementById(`c${prefix}_mgr`).value),
+    home: document.getElementById(`c${prefix}_home`).checked,
+    dgw: document.getElementById(`c${prefix}_dgw`).checked,
+    bgw: document.getElementById(`c${prefix}_bgw`).checked,
+    pen: false, spc: false,
+    rot: document.getElementById(`c${prefix}_rot`).checked,
+    ret: false,
+  };
+}
+
+function calcTransfer() {
+  const a = getPlayerFromForm('a');
+  const b = getPlayerFromForm('b');
+  const ft = parseInt(document.getElementById('c_ft').value);
+  const own = document.getElementById('c_own').value;
+
+  const rA = calcScore(a);
+  const rB = calcScore(b);
+
+  document.getElementById('tr-score-a').textContent = rA.score;
+  document.getElementById('tr-score-b').textContent = rB.score;
+  document.getElementById('tr-name-a').textContent = a.name;
+  document.getElementById('tr-name-b').textContent = b.name;
+
+  const diff = rB.score - rA.score;
+  const hitPenalty = ft <= 0 ? 4 : 0;  // 4pt hit in score terms ≈ ~4 score points (rough proxy)
+  const netGain = diff - hitPenalty;
+
+  let verdict, reasoning, vClass;
+  if (b.bgw) {
+    verdict = '❌ Do Not Transfer';
+    vClass = 'verdict-no';
+    reasoning = `${b.name} has a blank gameweek — don't bring them in for a GW where they won't play. Consider waiting or using a Free Hit instead.`;
+  } else if (netGain >= 15) {
+    verdict = '✅ Strong Transfer';
+    vClass = 'verdict-yes';
+    reasoning = `Score improvement of +${diff} (net +${netGain} after ${hitPenalty > 0 ? '4pt hit' : 'no hit'}). This is a clear upgrade worth making.`;
+  } else if (netGain >= 5) {
+    verdict = '✅ Recommended';
+    vClass = 'verdict-yes';
+    reasoning = `Score improvement of +${diff} (net +${netGain}). Worthwhile, especially over a 3-GW horizon.`;
+  } else if (netGain >= 0) {
+    verdict = '⚠️ Marginal';
+    vClass = 'verdict-maybe';
+    reasoning = `Score improvement of +${diff} (net +${netGain}). Only proceed if you have specific non-metric reasons (injury concern, price rise, DGW structure).`;
+  } else {
+    verdict = '❌ Not Recommended';
+    vClass = 'verdict-no';
+    reasoning = `Net score loss of ${Math.abs(netGain)}${hitPenalty > 0 ? ' including 4pt hit' : ''}. Hold ${a.name} unless there's an injury or an upcoming BGW to plan around.`;
+  }
+
+  if (own === 'differential' && diff > 0 && rB.score >= 65) {
+    reasoning += ` As a differential (${b.name} likely low-owned), upside is amplified — good for rank recovery.`;
+  }
+  if (b.dgw) reasoning += ` ${b.name} has a Double GW — fixture multiplier already included.`;
+  if (a.rot) reasoning += ` ${a.name} has rotation risk this GW — an additional reason to move on.`;
+
+  const verdictEl = document.getElementById('tr-verdict');
+  verdictEl.textContent = verdict;
+  verdictEl.className = `transfer-verdict ${vClass}`;
+  document.getElementById('tr-reasoning').textContent = reasoning;
+  document.getElementById('transfer-result').style.display = 'block';
+
+  // Compare bar chart
+  const keys = Object.keys(METRIC_LABELS);
+  const dataA = keys.map(k => rA.breakdown[k] ? rA.breakdown[k].norm * 100 : 0);
+  const dataB = keys.map(k => rB.breakdown[k] ? rB.breakdown[k].norm * 100 : 0);
+
+  if (compareChart) compareChart.destroy();
+  compareChart = new Chart(document.getElementById('compareChart'), {
+    type: 'bar',
+    data: {
+      labels: Object.values(METRIC_LABELS),
+      datasets: [
+        { label: a.name, data: dataA, backgroundColor: 'rgba(255,107,107,0.7)', borderRadius: 4 },
+        { label: b.name, data: dataB, backgroundColor: 'rgba(0,255,135,0.7)', borderRadius: 4 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#8b949e', font: { size: 11 } } } },
+      scales: {
+        x: { ticks: { color: '#8b949e', font: { size: 10 } }, grid: { color: '#21262d' } },
+        y: { min: 0, max: 100, ticks: { color: '#8b949e' }, grid: { color: '#21262d' } }
+      }
+    }
+  });
+}
+
+// ============================================================
+// STARTING XI
+// ============================================================
+function addXIPlayer() {
+  const name = document.getElementById('xi_name').value || 'Unknown';
+  const pos = document.getElementById('xi_pos').value;
+  const score = parseInt(document.getElementById('xi_score').value) || 0;
+  const doubt = document.getElementById('xi_doubt').checked;
+  xiSquad.push({ name, pos, score, doubt });
+  renderXISquad();
+  document.getElementById('xi_name').value = '';
+}
+
+function renderXISquad() {
+  const body = document.getElementById('xi-squad-body');
+  body.innerHTML = xiSquad.map((p, i) => `
+    <tr>
+      <td>${p.name}</td>
+      <td><span class="pos-badge pos-${p.pos}">${p.pos.toUpperCase()}</span></td>
+      <td style="color:#00ff87;font-weight:700;">${p.score}</td>
+      <td>${p.doubt ? '<span class="flag flag-warn">Doubt</span>' : '<span style="color:#00ff87;font-size:0.75rem;">✓</span>'}</td>
+      <td><button class="btn btn-danger" style="padding:2px 7px;font-size:0.72rem;" onclick="xiSquad.splice(${i},1);renderXISquad()">✕</button></td>
+    </tr>`).join('');
+}
+
+function clearXI() { xiSquad = []; renderXISquad(); document.getElementById('xi-result').style.display = 'none'; }
+
+function exportSquad() {
+  if (!xiSquad.length) { alert('No players in squad to export.'); return; }
+  const payload = { version: 1, exported: new Date().toISOString(), squad: xiSquad };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const gw = document.getElementById('gw-input').value || 'X';
+  a.download = `FPL_Squad_GW${gw}_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function importSquad(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      const squad = data.squad || data; // handle both wrapped and bare arrays
+      if (!Array.isArray(squad)) throw new Error('Invalid format');
+      xiSquad = squad;
+      renderXISquad();
+      document.getElementById('xi-result').style.display = 'none';
+      alert(`✓ Loaded ${xiSquad.length} players from ${file.name}`);
+    } catch(err) {
+      alert(`Could not read file: ${err.message}`);
+    }
+    event.target.value = ''; // reset so same file can be re-imported if needed
+  };
+  reader.readAsText(file);
+}
+
+function buildXI() {
+  const gkp = xiSquad.filter(p=>p.pos==='gkp').sort((a,b)=>b.score-a.score);
+  const def = xiSquad.filter(p=>p.pos==='def').sort((a,b)=>b.score-a.score);
+  const mid = xiSquad.filter(p=>p.pos==='mid').sort((a,b)=>b.score-a.score);
+  const fwd = xiSquad.filter(p=>p.pos==='fwd').sort((a,b)=>b.score-a.score);
+
+  if (gkp.length < 1) { alert('Need at least 1 GKP'); return; }
+
+  // Pick starter GKP
+  const starterGKP = gkp[0];
+  const bench = [gkp[1]].filter(Boolean);
+  const remaining = [...def.slice(0,5), ...mid.slice(0,5), ...fwd.slice(0,3)];
+
+  // Greedy: fill minimum requirements first
+  let xi = [starterGKP];
+  let usedDef = 0, usedMid = 0, usedFwd = 0;
+
+  // Min requirements
+  const minDef = def.slice(0, 3);
+  const minMid = mid.slice(0, 2);
+  const minFwd = fwd.slice(0, 1);
+  xi.push(...minDef); usedDef = 3;
+  xi.push(...minMid); usedMid = 2;
+  xi.push(...minFwd); usedFwd = 1;
+
+  // Fill remaining 4 spots from best available
+  const pool = [
+    ...def.slice(3).map(p=>({...p,_slot:'def'})),
+    ...mid.slice(2).map(p=>({...p,_slot:'mid'})),
+    ...fwd.slice(1).map(p=>({...p,_slot:'fwd'})),
+  ].sort((a,b)=>b.score-a.score);
+
+  let spots = 4;
+  for (const p of pool) {
+    if (spots === 0) break;
+    if (p._slot==='def' && usedDef < 5) { xi.push(p); usedDef++; spots--; }
+    else if (p._slot==='mid' && usedMid < 5) { xi.push(p); usedMid++; spots--; }
+    else if (p._slot==='fwd' && usedFwd < 3) { xi.push(p); usedFwd++; spots--; }
+  }
+
+  // Bench = everyone not in XI
+  const xiNames = xi.map(p=>p.name);
+  const benchPlayers = xiSquad.filter(p=>!xiNames.includes(p.name));
+
+  // Render
+  const result = document.getElementById('xi-result');
+  result.style.display = 'block';
+  const formation = `${usedDef}-${usedMid}-${usedFwd}`;
+
+  const posOrder = {gkp:0,def:1,mid:2,fwd:3};
+  xi.sort((a,b)=>posOrder[a.pos]-posOrder[b.pos]);
+
+  document.getElementById('xi-output').innerHTML = `
+    <p style="color:#00ff87;font-weight:700;margin-bottom:12px;">Formation: ${formation}</p>
+    <table>
+      <thead><tr><th>Pos</th><th>Player</th><th>Score</th><th>Note</th></tr></thead>
+      <tbody>
+        ${xi.map(p=>`<tr>
+          <td><span class="pos-badge pos-${p.pos}">${p.pos.toUpperCase()}</span></td>
+          <td><strong>${p.name}</strong></td>
+          <td style="color:#00ff87;font-weight:700;">${p.score}</td>
+          <td>${p.doubt?'<span class="flag flag-warn" style="font-size:0.65rem;">⚠ Doubt</span>':''}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+    ${benchPlayers.length ? `<p style="color:#8b949e;font-size:0.8rem;margin-top:14px;"><strong style="color:#e6edf3;">Bench:</strong> ${benchPlayers.map(p=>`${p.name} (${p.score})`).join(', ')}</p>` : ''}
+  `;
+}
+
+// ============================================================
+// CHIP PLANNER
+// ============================================================
+const chipStates = {wc1:false,wc2:false,tc1:false,tc2:false,bb:false,fh:false};
+function toggleChip(id) {
+  chipStates[id] = !chipStates[id];
+  document.getElementById('chip-'+id).classList.toggle('selected', chipStates[id]);
+}
+
+// ============================================================
+// WEIGHT EDITOR
+// ============================================================
+function renderWeightsEditor() {
+  const container = document.getElementById('weights-cards');
+  container.innerHTML = Object.entries(WEIGHTS).map(([decision, w]) => `
+    <div class="card" style="margin-bottom:16px;">
+      <h3>${decision.replace('_',' ').toUpperCase()}</h3>
+      <div class="weight-grid">
+        ${Object.entries(w).map(([metric, val]) => `
+          <div class="w-row">
+            <label>${METRIC_LABELS[metric]}</label>
+            <input type="number" id="w_${decision}_${metric}" value="${val}" step="0.01" min="0" max="1" style="width:60px;">
+          </div>`).join('')}
+      </div>
+      <div class="weight-total" id="wt_${decision}">Total: ${Object.values(w).reduce((s,v)=>s+v,0).toFixed(2)}</div>
+    </div>`).join('');
+}
+
+function saveWeights() {
+  for (const [decision, w] of Object.entries(WEIGHTS)) {
+    for (const metric of Object.keys(w)) {
+      const val = parseFloat(document.getElementById(`w_${decision}_${metric}`).value) || 0;
+      WEIGHTS[decision][metric] = val;
+    }
+    const total = Object.values(WEIGHTS[decision]).reduce((s,v)=>s+v,0);
+    document.getElementById(`wt_${decision}`).textContent = `Total: ${total.toFixed(2)}${Math.abs(total-1)>0.01?' ⚠️ should sum to 1.0':''}`;
+  }
+  // Persist to localStorage so weights survive page reloads
+  try { localStorage.setItem('fpl_weights', JSON.stringify(WEIGHTS)); } catch(_) {}
+  document.getElementById('weight-save-msg').style.display = 'block';
+  setTimeout(() => document.getElementById('weight-save-msg').style.display = 'none', 3000);
+}
+
+function resetWeights() {
+  WEIGHTS = JSON.parse(JSON.stringify(DEFAULT_WEIGHTS));
+  try { localStorage.removeItem('fpl_weights'); } catch(_) {}
+  renderWeightsEditor();
+}
+
+// ============================================================
+// TABS
+// ============================================================
+const TABS = ['evaluate','compare','xi','chips','weights'];
+function switchTab(name) {
+  TABS.forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===name?'block':'none';
+  });
+  document.querySelectorAll('.tab').forEach((el,i) => {
+    el.classList.toggle('active', TABS[i]===name);
+  });
+  if (name === 'weights') renderWeightsEditor();
+}
+
+// ============================================================
+// FIXTURE HELPER — FPL API (official FDR, no key required)
+// ============================================================
+
+// 2026/27 team names — embedded as fallback; updated by live fetch when FPL opens (Aug 2026)
+// IDs for Coventry (3), Ipswich (19), Hull (20) are placeholders — FPL will assign
+// confirmed IDs when the 2026/27 game opens. Update these if they differ.
+const EMBEDDED_TEAMS = {
+  1:{name:'Arsenal',short:'ARS'}, 2:{name:'Aston Villa',short:'AVL'},
+  3:{name:'Coventry',short:'COV'},      // promoted — ID TBC
+  4:{name:'Bournemouth',short:'BOU'},
+  5:{name:'Brentford',short:'BRE'}, 6:{name:'Brighton',short:'BHA'},
+  7:{name:'Chelsea',short:'CHE'}, 8:{name:'Crystal Palace',short:'CRY'},
+  9:{name:'Everton',short:'EVE'}, 10:{name:'Fulham',short:'FUL'},
+  11:{name:'Leeds',short:'LEE'}, 12:{name:'Liverpool',short:'LIV'},
+  13:{name:'Man City',short:'MCI'}, 14:{name:'Man Utd',short:'MUN'},
+  15:{name:'Newcastle',short:'NEW'}, 16:{name:"Nott'm Forest",short:'NFO'},
+  17:{name:'Sunderland',short:'SUN'}, 18:{name:'Spurs',short:'TOT'},
+  19:{name:'Ipswich',short:'IPS'},      // promoted — ID TBC
+  20:{name:'Hull',short:'HUL'},         // promoted — ID TBC
+};
+let fplTeamCache = {...EMBEDDED_TEAMS};
+
+function togglePasteMode() {
+  const el = document.getElementById('paste-mode');
+  const opening = el.style.display === 'none';
+  el.style.display = opening ? 'block' : 'none';
+  if (opening) populateManualDropdowns();
+}
+
+function populateManualDropdowns() {
+  const teams = Object.entries(fplTeamCache).sort((a,b) => a[1].name.localeCompare(b[1].name));
+  const opts = teams.map(([id, t]) => `<option value="${id}">${t.name}</option>`).join('');
+  document.getElementById('manual-home').innerHTML = opts;
+  document.getElementById('manual-away').innerHTML = opts;
+  // Default: first two different teams
+  if (teams.length >= 2) document.getElementById('manual-away').value = teams[1][0];
+}
+
+function addManualFixture() {
+  const hId = parseInt(document.getElementById('manual-home').value);
+  const aId = parseInt(document.getElementById('manual-away').value);
+  if (hId === aId) { setFixtureStatus('⚠ Home and away teams must be different', '#f0a500'); return; }
+  const hFdr = parseInt(document.getElementById('manual-hfdr').value);
+  const aFdr = parseInt(document.getElementById('manual-afdr').value);
+  const ko   = document.getElementById('manual-ko').value || '';
+  // Build a synthetic fixture object matching the FPL API shape
+  const fixture = { team_h: hId, team_a: aId, team_h_difficulty: hFdr, team_a_difficulty: aFdr, kickoff_time: ko };
+  // Append to existing list or start fresh
+  const existing = document.getElementById('fixture-list');
+  // Prevent duplicate — check if this exact matchup already exists
+  const matchKey = `${hId}-${aId}`;
+  if (existing.querySelector(`[data-match="${matchKey}"]`)) {
+    setFixtureStatus(`⚠ ${home.name} vs ${away.name} already added`, '#f0a500'); return;
+  }
+  // Render just this one fixture appended
+  const home = fplTeamCache[hId] || { name:`Team ${hId}`, short:'?' };
+  const away = fplTeamCache[aId] || { name:`Team ${aId}`, short:'?' };
+  const row = document.createElement('div');
+  row.setAttribute('data-match', matchKey);
+  row.style.cssText = 'background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:10px 12px;margin-bottom:6px;';
+  row.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <button onclick="applyFixture(${hId},${hFdr},true,'${home.name} vs ${away.name}')"
+        style="background:#0d2b16;border:1px solid #00803f;color:#00ff87;border-radius:6px;padding:5px 10px;font-size:0.78rem;font-weight:700;cursor:pointer;">
+        🏠 ${home.short}
+      </button>
+      <span style="color:#30363d;font-size:0.8rem;">vs</span>
+      <button onclick="applyFixture(${aId},${aFdr},false,'${home.name} vs ${away.name}')"
+        style="background:#0a1f3a;border:1px solid #0069a8;color:#00d4ff;border-radius:6px;padding:5px 10px;font-size:0.78rem;font-weight:700;cursor:pointer;">
+        ✈️ ${away.short}
+      </button>
+      <div style="display:flex;gap:4px;margin-left:auto;">
+        <span class="fdr-pill fdr-${hFdr}" style="padding:3px 8px;font-size:0.68rem;">H: ${hFdr}</span>
+        <span class="fdr-pill fdr-${aFdr}" style="padding:3px 8px;font-size:0.68rem;">A: ${aFdr}</span>
+      </div>
+    </div>
+    ${ko ? `<div style="font-size:0.68rem;color:#8b949e;margin-top:5px;">${ko}</div>` : ''}`;
+  existing.appendChild(row);
+  setFixtureStatus(`✓ Added ${home.name} vs ${away.name} — click a team to apply`, '#00ff87');
+  document.getElementById('manual-ko').value = '';
+}
+
+async function loadFixtures() {
+  const gw = parseInt(document.getElementById('gw-input').value);
+  if (!gw || gw < 1 || gw > 38) { setFixtureStatus('⚠ Enter a valid GW (1–38)', '#f0a500'); return; }
+
+  // Keep paste link in sync
+  document.getElementById('fpl-api-link').href = `https://fantasy.premierleague.com/api/fixtures/?event=${gw}`;
+  document.getElementById('fpl-api-link').textContent = `https://fantasy.premierleague.com/api/fixtures/?event=${gw}`;
+
+  setFixtureStatus('Fetching from FPL API…', '#8b949e');
+  document.getElementById('fixture-list').innerHTML = '';
+
+  try {
+    // Try to update team names from bootstrap-static
+    if (Object.keys(fplTeamCache).length <= 20) {
+      try {
+        const bsResp = await fetch('https://fantasy.premierleague.com/api/bootstrap-static/');
+        if (bsResp.ok) {
+          const bs = await bsResp.json();
+          fplTeamCache = {};
+          for (const t of bs.teams) fplTeamCache[t.id] = { name: t.name, short: t.short_name };
+        }
+      } catch(_) { /* use embedded fallback silently */ }
+    }
+
+    const fxResp = await fetch(`https://fantasy.premierleague.com/api/fixtures/?event=${gw}`);
+    if (!fxResp.ok) throw new Error(`API returned ${fxResp.status}`);
+    const fixtures = await fxResp.json();
+
+    if (!fixtures.length) {
+      setFixtureStatus(`No GW${gw} fixtures in FPL yet — 2026/27 game opens ~August 2026. Use 📋 Paste once it does.`, '#f0a500');
+      return;
+    }
+
+    setFixtureStatus(`✓ ${fixtures.length} fixtures for GW${gw} — click a team to apply`, '#00ff87');
+    renderFixtureList(fixtures);
+
+  } catch (e) {
+    setFixtureStatus(`Auto-load blocked (CORS from local file). Use 📋 Paste — open the link, copy all, paste.`, '#f0a500');
+    document.getElementById('paste-mode').style.display = 'block';
+  }
+}
+
+function renderFixtureList(fixtures, gw) {
+  const container = document.getElementById('fixture-list');
+  const rows = fixtures.map(f => {
+    const home = fplTeamCache[f.team_h] || { name: `Team ${f.team_h}`, short: '?' };
+    const away = fplTeamCache[f.team_a] || { name: `Team ${f.team_a}`, short: '?' };
+    const ko = f.kickoff_time ? new Date(f.kickoff_time).toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : 'TBC';
+    const hFdr = f.team_h_difficulty;
+    const aFdr = f.team_a_difficulty;
+
+    return `<div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:10px 12px;margin-bottom:6px;">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <button onclick="applyFixture(${f.team_h},${hFdr},true,'${home.name} vs ${away.name}')"
+          style="background:#0d2b16;border:1px solid #00803f;color:#00ff87;border-radius:6px;padding:5px 10px;font-size:0.78rem;font-weight:700;cursor:pointer;">
+          🏠 ${home.short}
+        </button>
+        <span style="color:#30363d;font-size:0.8rem;">vs</span>
+        <button onclick="applyFixture(${f.team_a},${aFdr},false,'${home.name} vs ${away.name}')"
+          style="background:#0a1f3a;border:1px solid #0069a8;color:#00d4ff;border-radius:6px;padding:5px 10px;font-size:0.78rem;font-weight:700;cursor:pointer;">
+          ✈️ ${away.short}
+        </button>
+        <div style="display:flex;gap:4px;margin-left:auto;">
+          <span class="fdr-pill fdr-${hFdr}" style="padding:3px 8px;font-size:0.68rem;">H: ${hFdr}</span>
+          <span class="fdr-pill fdr-${aFdr}" style="padding:3px 8px;font-size:0.68rem;">A: ${aFdr}</span>
+        </div>
+      </div>
+      <div style="font-size:0.68rem;color:#8b949e;margin-top:5px;">${ko}</div>
+    </div>`;
+  });
+  container.innerHTML = rows.join('');
+}
+
+function applyFixture(teamId, fdr, isHome, matchLabel) {
+  document.getElementById('m_venue').value = isHome ? 'home' : 'away';
+  setFDR(fdr);
+  renderBreakdown();
+  setFixtureStatus(`✓ Applied: ${isHome ? '🏠 Home' : '✈️ Away'} · FDR ${fdr} · ${matchLabel}`, '#00ff87');
+}
+
+function setFDR(val) {
+  document.getElementById('m_fdr').value = val;
+  document.getElementById('v_fdr').textContent = val;
+  // Highlight active pill
+  document.querySelectorAll('.fdr-pill').forEach(el => {
+    el.classList.toggle('active-pill', el.classList.contains('fdr-'+val));
+  });
+  renderBreakdown();
+}
+
+function setFixtureStatus(msg, color) {
+  const el = document.getElementById('fixture-status');
+  el.textContent = msg;
+  el.style.color = color || '#8b949e';
+}
+
+// ============================================================
+// INIT
+// ============================================================
+
+// Load any previously saved weights from localStorage so they
+// survive page reloads and browser restarts
+try {
+  const saved = localStorage.getItem('fpl_weights');
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    for (const [decision, w] of Object.entries(parsed)) {
+      if (WEIGHTS[decision]) {
+        for (const [metric, val] of Object.entries(w)) {
+          if (metric in WEIGHTS[decision]) WEIGHTS[decision][metric] = val;
+        }
+      }
+    }
+  }
+} catch(_) {}
+
+renderWeightsEditor();
+</script>
+</body>
+</html>
