@@ -70,6 +70,33 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font
 .toast.error{border-color:var(--red);}
 .empty-note{font-size:12px;color:var(--muted);font-style:italic;padding:8px 0;}
 .spacer-line{height:1px;background:var(--border);margin:16px 0;}
+
+/* SQUAD PLANNER (admin) */
+.watchlist-filters{display:flex;gap:8px;margin:8px 0 16px;flex-wrap:wrap;}
+.filter-btn{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+.filter-btn:hover{border-color:var(--green);color:var(--text);}
+.filter-btn.active{background:var(--green);color:#000;border-color:var(--green);}
+.squad-summary{display:flex;align-items:center;gap:24px;background:var(--bg3);border-radius:8px;padding:12px 16px;margin-bottom:16px;flex-wrap:wrap;}
+.squad-stat{text-align:center;}
+.squad-stat .ss-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;line-height:1;}
+.squad-stat .ss-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:3px;}
+.squad-summary.status-good .ss-val.squad-total{color:var(--green);}
+.squad-summary.status-incomplete .ss-val.squad-total{color:var(--amber);}
+.squad-summary.status-over .ss-val.squad-total{color:var(--red);}
+.wl-header,.wl-row{display:grid;grid-template-columns:150px 55px 75px 60px 55px 60px 130px;padding:9px 12px;border-bottom:1px solid var(--border);align-items:center;gap:8px;font-size:12px;min-width:640px;}
+.wl-header{background:var(--bg4);font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:600;}
+.wl-row:last-child{border-bottom:none;}
+.wl-row:hover{background:var(--bg4);}
+.wl-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pos-tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-family:'Barlow Condensed',sans-serif;font-weight:700;}
+.pos-GKP{background:rgba(255,200,0,.15);color:#ffc800;}
+.pos-DEF{background:rgba(0,200,100,.15);color:#00c864;}
+.pos-MID{background:rgba(68,136,255,.15);color:#4488ff;}
+.pos-FWD{background:rgba(255,80,80,.15);color:#ff5050;}
+.wl-num{text-align:right;font-family:'Barlow Condensed',sans-serif;color:var(--text);}
+.squad-select{width:100%;padding:5px 6px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:12px;}
+.squad-select:focus{outline:none;border-color:var(--green);}
+.watchlist-table-wrap{overflow-x:auto;}
 </style>
 </head>
 <body>
@@ -172,6 +199,30 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font
       <div id="prizeAdminList"></div>
     </div>
 
+    <!-- SQUAD PLANNER -->
+    <div class="section">
+      <div class="section-head">Squad Planner (Watch List)</div>
+      <div class="watchlist-filters">
+        <button class="filter-btn active" onclick="filterSquad('ALL',this)">All</button>
+        <button class="filter-btn" onclick="filterSquad('GKP',this)">GK</button>
+        <button class="filter-btn" onclick="filterSquad('DEF',this)">DEF</button>
+        <button class="filter-btn" onclick="filterSquad('MID',this)">MID</button>
+        <button class="filter-btn" onclick="filterSquad('FWD',this)">FWD</button>
+        <button class="filter-btn" onclick="filterSquad('SQUAD',this)">My Squad (Yes)</button>
+      </div>
+      <div class="squad-summary" id="squadSummaryAdmin"></div>
+      <div class="watchlist-table-wrap">
+        <div class="wl-header">
+          <div>Player</div><div>Pos</div><div>Club</div>
+          <div style="text-align:right">Price</div>
+          <div style="text-align:right">Pts</div>
+          <div style="text-align:right">Form</div>
+          <div>Squad Pick</div>
+        </div>
+        <div id="squadPlannerBody"></div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -184,6 +235,8 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbzZB5eQzD5Z8uWE-PMYwsDL
 let DATA = null;
 let ADMIN_PWD = '';
 let callbackCounter = 0;
+let allWatchList = [];
+let currentSquadFilter = 'ALL';
 
 // Fetch the league name before login (getData needs no password) so the
 // login screen and browser title reflect this season's name right away
@@ -284,6 +337,7 @@ function renderAdmin() {
   renderPotSummary();
   renderManagers();
   renderPrizes();
+  renderSquadPlanner();
 }
 
 function renderPotSummary() {
@@ -358,6 +412,69 @@ function renderPrizes() {
       '<div></div>'+
     '</div>';
   }).join('');
+}
+
+// ── SQUAD PLANNER ──
+function renderSquadPlanner() {
+  allWatchList = DATA.watchlist || [];
+  renderSquadSummaryAdmin();
+  applySquadFilter();
+}
+
+function renderSquadSummaryAdmin() {
+  const s = DATA.squadSummary || { total: 0, yesCount: 0, budget: 100, status: 'incomplete' };
+  const el = document.getElementById('squadSummaryAdmin');
+  el.className = 'squad-summary status-' + s.status;
+  const statusLabel = s.status === 'over'
+    ? 'Over budget'
+    : s.status === 'incomplete'
+      ? (s.yesCount < 15 ? 'Squad incomplete' : 'Too many picks')
+      : 'Squad ready';
+  el.innerHTML =
+    '<div class="squad-stat"><div class="ss-val squad-total">£'+s.total.toFixed(1)+'m</div><div class="ss-lbl">Squad Value</div></div>'+
+    '<div class="squad-stat"><div class="ss-val">'+s.yesCount+' / 15</div><div class="ss-lbl">Players Picked</div></div>'+
+    '<div class="squad-stat"><div class="ss-val">£'+s.budget+'.0m</div><div class="ss-lbl">Budget Limit</div></div>'+
+    '<div class="squad-stat"><div class="ss-val" style="font-size:14px;text-transform:uppercase;">'+statusLabel+'</div><div class="ss-lbl">Status</div></div>';
+}
+
+function filterSquad(f, el) {
+  currentSquadFilter = f;
+  document.querySelectorAll('.watchlist-filters .filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  applySquadFilter();
+}
+
+function applySquadFilter() {
+  let list = allWatchList;
+  if (currentSquadFilter === 'SQUAD') list = list.filter(p => p.squadPick === 'Yes');
+  else if (currentSquadFilter !== 'ALL') list = list.filter(p => p.pos === currentSquadFilter);
+
+  const tbody = document.getElementById('squadPlannerBody');
+  if (!list.length) {
+    tbody.innerHTML = '<div class="empty-note">No players in this category</div>';
+    return;
+  }
+
+  tbody.innerHTML = list.map(p => {
+    const opts = ['', 'Yes', 'Maybe'].map(v =>
+      '<option value="'+v+'"'+(p.squadPick===v?' selected':'')+'>'+(v||'–')+'</option>'
+    ).join('');
+    return '<div class="wl-row">'+
+      '<div class="wl-name" title="'+esc(p.name)+'">'+esc(p.name)+'</div>'+
+      '<div><span class="pos-tag pos-'+esc(p.pos)+'">'+esc(p.pos)+'</span></div>'+
+      '<div class="wl-num" style="text-align:left">'+esc(p.club||'–')+'</div>'+
+      '<div class="wl-num">'+(p.price!==''?'£'+p.price+'m':'–')+'</div>'+
+      '<div class="wl-num">'+(p.pts||'–')+'</div>'+
+      '<div class="wl-num">'+(p.form!==''?p.form:'–')+'</div>'+
+      '<div><select class="squad-select" onchange="setSquadPick('+p.id+', this.value)">'+opts+'</select></div>'+
+    '</div>';
+  }).join('');
+}
+
+function setSquadPick(playerId, value) {
+  callApi({ action:'setSquadPick', playerId:playerId, value:value, pwd:ADMIN_PWD }, r => {
+    DATA = r.data; renderSquadPlanner(); showToast('Squad pick saved');
+  }, e => { showToast(e, true); renderSquadPlanner(); });
 }
 
 // ── ACTIONS ──
