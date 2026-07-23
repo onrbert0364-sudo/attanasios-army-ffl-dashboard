@@ -1286,21 +1286,32 @@ async function loadFixtures() {
   setFixtureStatus('Fetching from FPL API…', '#8b949e');
   document.getElementById('fixture-list').innerHTML = '';
 
+  const FPL_BASE   = 'https://fantasy.premierleague.com/api';
+  const PROXY      = 'https://corsproxy.io/?url=';
+
+  async function fplFetch(url) {
+    // Try direct first; fall back to CORS proxy if blocked
+    try {
+      const r = await fetch(url);
+      if (r.ok) return r;
+    } catch(_) {}
+    const r2 = await fetch(PROXY + encodeURIComponent(url));
+    if (!r2.ok) throw new Error(`API returned ${r2.status}`);
+    return r2;
+  }
+
   try {
     // Try to update team names from bootstrap-static
     if (Object.keys(fplTeamCache).length <= 20) {
       try {
-        const bsResp = await fetch('https://fantasy.premierleague.com/api/bootstrap-static/');
-        if (bsResp.ok) {
-          const bs = await bsResp.json();
-          fplTeamCache = {};
-          for (const t of bs.teams) fplTeamCache[t.id] = { name: t.name, short: t.short_name };
-        }
+        const bsResp = await fplFetch(`${FPL_BASE}/bootstrap-static/`);
+        const bs = await bsResp.json();
+        fplTeamCache = {};
+        for (const t of bs.teams) fplTeamCache[t.id] = { name: t.name, short: t.short_name };
       } catch(_) { /* use embedded fallback silently */ }
     }
 
-    const fxResp = await fetch(`https://fantasy.premierleague.com/api/fixtures/?event=${gw}`);
-    if (!fxResp.ok) throw new Error(`API returned ${fxResp.status}`);
+    const fxResp = await fplFetch(`${FPL_BASE}/fixtures/?event=${gw}`);
     const fixtures = await fxResp.json();
 
     if (!fixtures.length) {
@@ -1312,7 +1323,7 @@ async function loadFixtures() {
     renderFixtureList(fixtures);
 
   } catch (e) {
-    setFixtureStatus(`Auto-load blocked (CORS from local file). Use 📋 Paste — open the link, copy all, paste.`, '#f0a500');
+    setFixtureStatus(`Auto-load failed. Use ✏️ Manual entry or 📋 Paste the fixture JSON.`, '#f0a500');
     document.getElementById('paste-mode').style.display = 'block';
   }
 }
