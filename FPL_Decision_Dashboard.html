@@ -1279,9 +1279,12 @@ async function loadFixtures() {
   const gw = parseInt(document.getElementById('gw-input').value);
   if (!gw || gw < 1 || gw > 38) { setFixtureStatus('⚠ Enter a valid GW (1–38)', '#f0a500'); return; }
 
-  // Keep paste link in sync
-  document.getElementById('fpl-api-link').href = `https://fantasy.premierleague.com/api/fixtures/?event=${gw}`;
-  document.getElementById('fpl-api-link').textContent = `https://fantasy.premierleague.com/api/fixtures/?event=${gw}`;
+  // Keep paste link in sync (element may not be present in all versions)
+  const _apiLink = document.getElementById('fpl-api-link');
+  if (_apiLink) {
+    _apiLink.href = `https://fantasy.premierleague.com/api/fixtures/?event=${gw}`;
+    _apiLink.textContent = `https://fantasy.premierleague.com/api/fixtures/?event=${gw}`;
+  }
 
   setFixtureStatus('Fetching from FPL API…', '#8b949e');
   document.getElementById('fixture-list').innerHTML = '';
