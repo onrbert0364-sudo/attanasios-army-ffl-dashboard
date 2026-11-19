@@ -178,6 +178,19 @@
   .help-btn { background: #0d1117; color: #0d1117; border: none; border-radius: 20px; padding: 6px 14px; font-size: 0.75rem; font-weight: 800; cursor: pointer; margin-left: auto; color: #00ff87; }
   .help-btn:hover { background: #161b22; }
 
+  /* FPL PLAYER SEARCH */
+  .fpl-search { background: #0d1f14; border: 1px solid #1d4d2e; border-radius: 10px; padding: 10px 12px 12px; margin-bottom: 4px; }
+  .fpl-search label { margin-top: 0; color: #00ff87; font-weight: 700; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .fpl-search label .pl-status { font-weight: 500; color: #8b949e; font-size: 0.68rem; }
+  .fpl-search label .pl-refresh { color: #00d4ff; cursor: pointer; font-weight: 600; font-size: 0.68rem; }
+  .pl-info { font-size: 0.74rem; color: #a8b3c4; line-height: 1.6; margin-top: 8px; }
+  .pl-info:empty { display: none; }
+  .pl-info .pl-chip { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 0.66rem; font-weight: 700; margin: 2px 4px 2px 0; }
+  .pl-chip.ok { background: #0d2b16; color: #00ff87; border: 1px solid #00803f; }
+  .pl-chip.warn { background: #3d2f00; color: #f5d27a; border: 1px solid #7a5400; }
+  .pl-chip.bad { background: #3d0f0f; color: #ff8a8a; border: 1px solid #7a2020; }
+  .pl-chip.info { background: #0a1f3a; color: #88bbff; border: 1px solid #1f3a52; }
+
   /* CHIP PLANNER v2 */
   .chip-half-title { font-size: 0.78rem; font-weight: 800; color: #e6edf3; text-transform: uppercase; letter-spacing: 0.6px; margin: 14px 0 8px; display: flex; justify-content: space-between; align-items: baseline; }
   .chip-half-title span { font-size: 0.7rem; color: #8b949e; font-weight: 600; text-transform: none; letter-spacing: 0; }
@@ -231,9 +244,10 @@
       <div class="guide-body">
         <p>Scores one player from 0 to 100 for a chosen decision (captain, transfer in, starting XI or bench). The decision type changes which metrics matter most. See the <strong>Weights</strong> tab.</p>
         <ol>
-          <li><strong>Fixture Lookup</strong> (optional): enter the gameweek, press <strong>Auto Load</strong>, then click the player's team (🏠 home or ✈️ away). This sets FDR and home/away for you. Press <strong>🔍 Auto H2H</strong> to fill the H2H slider from the last few seasons' results at that ground.</li>
-          <li>Type the <strong>name</strong>, choose <strong>position</strong> and <strong>decision type</strong>.</li>
-          <li>Fill the <strong>metrics</strong> from the player's FPL profile. Hover the <span class="tip-i">ⓘ</span> next to each label to see where the number comes from.</li>
+          <li><strong>Fixture Lookup</strong> is only needed for a gameweek other than next week. Enter the gameweek, press <strong>Auto Load</strong> and click the player's team.</li>
+          <li><strong>🔎 Find FPL player</strong>: start typing a surname and pick from the list. This fills position, form, xG, xA, xGC, minutes, penalty and set-piece duty, the overperformance check and next week's fixture (FDR, home/away, double or blank) from FPL.</li>
+          <li>Choose the <strong>decision type</strong>, then press <strong>🔍 Auto H2H</strong> in Fixture Lookup to fill the H2H slider.</li>
+          <li>Check the green panel under the search for injury news and small samples. Tick <strong>Rotation risk</strong> or <strong>Returning from injury</strong> yourself if they apply. FPL doesn't supply those.</li>
           <li>Tick any <strong>modifiers</strong> that apply (penalty taker, rotation risk, double gameweek and so on).</li>
           <li>Read the score and the breakdown bars, then <strong>+ Add to Shortlist</strong> or <strong>→ Send to Starting XI</strong>.</li>
         </ol>
@@ -329,6 +343,14 @@
             </div>
           </div>
         </details>
+
+        <div class="fpl-search">
+          <label>🔎 Find FPL player <span><span class="pl-status" id="pl-status-eval">fills everything below</span></span></label>
+          <input type="text" list="fpl-player-list" id="p1search" placeholder="Start typing a surname…" autocomplete="off"
+                 onfocus="ensurePlayers()" oninput="onPlayerSearch(this,'eval')">
+          <div class="pl-info" id="pl-info-eval"></div>
+        </div>
+        <datalist id="fpl-player-list"></datalist>
 
         <label>Player Name</label>
         <input type="text" id="p1name" placeholder="e.g. Palmer" value="">
@@ -447,7 +469,7 @@
       <div class="guide-body">
         <p>Head-to-head between the player you'd sell (<strong>A, red</strong>) and the player you'd buy (<strong>B, green</strong>). Both are scored with the same engine as the Evaluate tab.</p>
         <ol>
-          <li>Fill both columns with the same sources you use on the Evaluate tab. FDR here is the <strong>next gameweek only</strong>.</li>
+          <li>Use <strong>🔎 Find FPL player</strong> at the top of each column to fill it from FPL. FDR here is the <strong>next gameweek only</strong>. H2H stays at 0.50 unless you enter it.</li>
           <li>Set <strong>Free transfers available</strong>. Choosing <code>0</code> applies the −4 hit.</li>
           <li>Press <strong>Evaluate Transfer</strong>.</li>
         </ol>
@@ -469,6 +491,12 @@
       <!-- PLAYER A -->
       <div class="card">
         <h2 style="color:#ff6b6b;">▼ Player Out (A)</h2>
+        <div class="fpl-search" style="margin-top:6px;">
+          <label>🔎 Find FPL player <span class="pl-status" id="pl-status-a"></span></label>
+          <input type="text" list="fpl-player-list" id="casearch" placeholder="Start typing a surname…" autocomplete="off"
+                 onfocus="ensurePlayers()" oninput="onPlayerSearch(this,'a')">
+          <div class="pl-info" id="pl-info-a"></div>
+        </div>
         <label>Name</label><input type="text" id="c_a_name" placeholder="e.g. Szoboszlai" value="">
         <label>Position</label>
         <select id="c_a_pos"><option value="mid">MID</option><option value="fwd">FWD</option><option value="def">DEF</option><option value="gkp">GKP</option></select>
@@ -479,17 +507,25 @@
         <label>Minutes %</label><input type="number" id="ca_mins" value="70" step="1" min="0" max="100">
         <label>H2H score</label><input type="number" id="ca_h2h" value="0.5" step="0.05" min="0" max="1">
         <label>Mgr H2H</label><input type="number" id="ca_mgr" value="0.33" step="0.05" min="0" max="1">
-        <label title="Goals scored ÷ cumulative xG. 1.0 = in line with xG. &gt;1 = overperforming.">Goals/xG ratio</label><input type="number" id="ca_xgc" value="1.0" step="0.01" min="0.1" max="3">
-        <label title="Set to 1.0 at start of season. Only meaningful from GW4+.">xG overperf check</label><input type="number" id="ca_ops" value="1.0" step="0.01" min="0.1" max="3">
+        <label title="Expected goals conceded per 90. Only used for GKP and DEF. Lower is better.">xGC/90 (GKP/DEF only)</label><input type="number" id="ca_xgc" value="1.0" step="0.01" min="0" max="3">
+        <label title="Goals scored ÷ season total xG. 1.0 = in line with xG. Above 1.5 deducts points. Leave at 1.0 for GKP/DEF.">Goals ÷ xG (overperf check)</label><input type="number" id="ca_ops" value="1.0" step="0.01" min="0.1" max="3">
         <div class="toggle-row" style="margin-top:10px;"><input type="checkbox" id="ca_home"><label for="ca_home">Home fixture</label></div>
         <div class="toggle-row"><input type="checkbox" id="ca_dgw"><label for="ca_dgw">DGW</label></div>
         <div class="toggle-row"><input type="checkbox" id="ca_bgw"><label for="ca_bgw">BGW (no fixture)</label></div>
         <div class="toggle-row"><input type="checkbox" id="ca_rot"><label for="ca_rot">Rotation risk</label></div>
+        <div class="toggle-row"><input type="checkbox" id="ca_pen"><label for="ca_pen">Penalty taker</label></div>
+        <div class="toggle-row"><input type="checkbox" id="ca_spc"><label for="ca_spc">Set piece specialist</label></div>
       </div>
 
       <!-- PLAYER B -->
       <div class="card">
         <h2 style="color:#00ff87;">▲ Player In (B)</h2>
+        <div class="fpl-search" style="margin-top:6px;">
+          <label>🔎 Find FPL player <span class="pl-status" id="pl-status-b"></span></label>
+          <input type="text" list="fpl-player-list" id="cbsearch" placeholder="Start typing a surname…" autocomplete="off"
+                 onfocus="ensurePlayers()" oninput="onPlayerSearch(this,'b')">
+          <div class="pl-info" id="pl-info-b"></div>
+        </div>
         <label>Name</label><input type="text" id="c_b_name" placeholder="e.g. Palmer" value="">
         <label>Position</label>
         <select id="c_b_pos"><option value="mid">MID</option><option value="fwd">FWD</option><option value="def">DEF</option><option value="gkp">GKP</option></select>
@@ -500,12 +536,14 @@
         <label>Minutes %</label><input type="number" id="cb_mins" value="90" step="1" min="0" max="100">
         <label>H2H score</label><input type="number" id="cb_h2h" value="0.5" step="0.05" min="0" max="1">
         <label>Mgr H2H</label><input type="number" id="cb_mgr" value="0.33" step="0.05" min="0" max="1">
-        <label title="Goals scored ÷ cumulative xG. 1.0 = in line with xG. &gt;1 = overperforming.">Goals/xG ratio</label><input type="number" id="cb_xgc" value="1.0" step="0.01" min="0.1" max="3">
-        <label title="Set to 1.0 at start of season. Only meaningful from GW4+.">xG overperf check</label><input type="number" id="cb_ops" value="1.0" step="0.01" min="0.1" max="3">
+        <label title="Expected goals conceded per 90. Only used for GKP and DEF. Lower is better.">xGC/90 (GKP/DEF only)</label><input type="number" id="cb_xgc" value="1.0" step="0.01" min="0" max="3">
+        <label title="Goals scored ÷ season total xG. 1.0 = in line with xG. Above 1.5 deducts points. Leave at 1.0 for GKP/DEF.">Goals ÷ xG (overperf check)</label><input type="number" id="cb_ops" value="1.0" step="0.01" min="0.1" max="3">
         <div class="toggle-row" style="margin-top:10px;"><input type="checkbox" id="cb_home" checked><label for="cb_home">Home fixture</label></div>
         <div class="toggle-row"><input type="checkbox" id="cb_dgw"><label for="cb_dgw">DGW</label></div>
         <div class="toggle-row"><input type="checkbox" id="cb_bgw"><label for="cb_bgw">BGW (no fixture)</label></div>
         <div class="toggle-row"><input type="checkbox" id="cb_rot"><label for="cb_rot">Rotation risk</label></div>
+        <div class="toggle-row"><input type="checkbox" id="cb_pen"><label for="cb_pen">Penalty taker</label></div>
+        <div class="toggle-row"><input type="checkbox" id="cb_spc"><label for="cb_spc">Set piece specialist</label></div>
       </div>
     </div>
 
@@ -736,8 +774,8 @@
     <div class="guide-card" id="g-routine">
       <h2>Weekly Routine</h2>
       <div class="step-row"><span class="step-num">1</span><div><strong>Wait for scores to be final.</strong> FPL finalises gameweek scores at 09:00 UK time the day after the last match, so check from then.</div></div>
-      <div class="step-row"><span class="step-num">2</span><div><strong>Load next week's fixtures.</strong> Evaluate tab → 🏟️ Fixture Lookup → enter the next gameweek → <strong>Auto Load</strong>.</div></div>
-      <div class="step-row"><span class="step-num">3</span><div><strong>Score your candidates.</strong> For each player: click his team in the fixture list → <strong>🔍 Auto H2H</strong> → fill name, position, decision type and metrics → <strong>+ Add to Shortlist</strong>.</div></div>
+      <div class="step-row"><span class="step-num">2</span><div><strong>Fixtures load themselves.</strong> Picking a player from 🔎 Find FPL player sets next week's fixture automatically. Use 🏟️ Fixture Lookup only to look further ahead.</div></div>
+      <div class="step-row"><span class="step-num">3</span><div><strong>Score your candidates.</strong> For each player: <strong>🔎 Find FPL player</strong> → pick decision type → <strong>🔍 Auto H2H</strong> → read the injury/news panel → <strong>+ Add to Shortlist</strong>.</div></div>
       <div class="step-row"><span class="step-num">4</span><div><strong>Check transfers.</strong> Compare / Transfer tab: weakest player you own as A, best target as B, set free transfers → <strong>Evaluate Transfer</strong>. Check FPL's Price Change Predictor before committing.</div></div>
       <div class="step-row"><span class="step-num">5</span><div><strong>Pick a captain.</strong> Score your top two or three with decision type <strong>Captain</strong>. Highest score wins, unless a flag (rotation, injury return) says otherwise.</div></div>
       <div class="step-row"><span class="step-num">6</span><div><strong>Set the team.</strong> Starting XI tab → <strong>Build Optimal XI</strong> → copy it into FPL. <strong>⬇ Export</strong> the squad so you can reload it next week.</div></div>
@@ -766,6 +804,7 @@
     <div class="guide-card" id="g-inputs">
       <h2>Where to Find Each Number</h2>
       <div class="guide-body" style="margin-top:0;">
+        <p><strong>🔎 Find FPL player fills all of these automatically</strong> except H2H, Mgr H2H, Rotation risk and Returning from injury. Keep this table for checking a figure or entering one by hand.</p>
         <p>Most numbers are on the player's profile on the FPL site. Click a player's name anywhere in FPL → <strong>History</strong> tab. The table has a <strong>Totals</strong> row and a <strong>Per 90</strong> row. Scroll the table right if a column is hidden.</p>
         <table class="ref-table">
           <tr><td>Form</td><td>Shown on the player's FPL profile. FPL's own figure: average points per match over roughly the last month.</td></tr>
@@ -773,7 +812,7 @@
           <tr><td>xA per 90</td><td>History tab → <strong>Per 90</strong> row → xA column.</td></tr>
           <tr><td>xGC per 90</td><td>History tab → Per 90 row → xGC column (GKP/DEF only). This reflects the team's defence as well as the player.</td></tr>
           <tr><td>FDR</td><td>Set automatically when you click a team in Fixture Lookup. Otherwise use the FDR colour on the FPL fixtures page.</td></tr>
-          <tr><td>Minutes %</td><td>Total minutes (Totals row, MP) ÷ (gameweeks played × 90) × 100. Example: 720 minutes after 10 gameweeks = 720 ÷ 900 = 80.</td></tr>
+          <tr><td>Minutes %</td><td>Total minutes (Totals row, MP) ÷ (gameweeks played × 90) × 100. Example: 720 minutes after 10 gameweeks = 720 ÷ 900 = 80. Auto-fill uses every finished gameweek, so a player signed mid-season will look low.</td></tr>
           <tr><td>H2H score</td><td>Press <strong>🔍 Auto H2H</strong> after clicking a team in Fixture Lookup. It's the selected team's win rate at that ground over recent seasons. 0.50 = no data or even.</td></tr>
           <tr><td>Mgr H2H</td><td>No automatic source. Leave at 0.33 unless you know the managers' record.</td></tr>
           <tr><td>Goals ÷ xG<br>(overperf check)</td><td>Totals row: <strong>GS ÷ xG</strong>. Use the <strong>season total</strong> xG, not the Per 90 figure. Example: 3 goals ÷ 1.7 xG = 1.76.<br>Leave at 1.00 for GKP and DEF, and for anyone with very few shots.</td></tr>
@@ -824,6 +863,7 @@
         <table class="ref-table">
           <tr><td>Page looks the same after an update</td><td>GitHub is serving an old copy. Add <code>?v=</code> and a new number to the address, e.g. <code>…/FPL_Decision_Dashboard.html?v=13</code>. Check with <strong>Cmd+Option+U</strong> (view source) if unsure.</td></tr>
           <tr><td>Safari shows old version</td><td>Develop menu → Empty Caches, or open it in a Private window.</td></tr>
+          <tr><td>Find FPL player says "Timed out"</td><td>Click in the box again. The first load each half hour takes 10–20 seconds while it fetches from FPL. If it keeps failing, Code.gs may not be redeployed with the latest version.</td></tr>
           <tr><td>Auto Load fails</td><td>Wait a few seconds and press it again (the data source can be slow to wake). Otherwise use <strong>✏️ Manual</strong> to enter the fixture yourself.</td></tr>
           <tr><td>Auto H2H says "Timed out"</td><td>Press it again. The first lookup for a fixture can take 10–20 seconds. After that it's remembered for 24 hours.</td></tr>
           <tr><td>Auto H2H "team not found"</td><td>A team code mismatch between FPL and football-data.org. Set the H2H slider by hand and let me know which team it was.</td></tr>
@@ -837,7 +877,8 @@
       <h2>Known Limitations</h2>
       <div class="guide-body" style="margin-top:0;">
         <ul>
-          <li>Metrics are typed in by hand. FPL publishes most of them, and auto-fill is the next planned update.</li>
+          <li>H2H, Mgr H2H, rotation risk and injury return still need you. Auto-fill doesn't cover them.</li>
+          <li>Auto-filled data can be up to 30 minutes old. Press <strong>↻ refresh</strong> next to the search box for the latest.</li>
           <li>xG above 1.0 and xA above 0.6 per 90 don't score any higher.</li>
           <li>Per-90 figures aren't weighted by minutes played, so small samples can inflate a score.</li>
           <li>Fixture difficulty covers the next gameweek only, not a fixture run.</li>
@@ -1214,7 +1255,8 @@ function getPlayerFromForm(prefix) {
     home: document.getElementById(`c${prefix}_home`).checked,
     dgw: document.getElementById(`c${prefix}_dgw`).checked,
     bgw: document.getElementById(`c${prefix}_bgw`).checked,
-    pen: false, spc: false,
+    pen: document.getElementById(`c${prefix}_pen`).checked,
+    spc: document.getElementById(`c${prefix}_spc`).checked,
     rot: document.getElementById(`c${prefix}_rot`).checked,
     ret: false,
   };
@@ -1990,6 +2032,197 @@ function applyInputTips() {
 applyInputTips();
 try { const n = localStorage.getItem('fpl_chip_notes'); if (n) document.getElementById('chip-notes').value = n; } catch(_) {}
 renderChips();
+
+// ============================================================
+// FPL PLAYER AUTO-FILL (Phase 1) — data via Apps Script getPlayers
+// ============================================================
+const POS_MAP  = {1:'gkp', 2:'def', 3:'mid', 4:'fwd'};
+const POS_NAME = {1:'GKP', 2:'DEF', 3:'MID', 4:'FWD'};
+let FPL = null;              // { meta, players:[obj], byLabel:{} }
+let playersLoading = false;
+let playersWaiters = [];
+
+function setPlStatus(msg) {
+  ['eval','a','b'].forEach(t => {
+    const el = document.getElementById('pl-status-' + t);
+    if (el) el.innerHTML = msg;
+  });
+}
+
+function ensurePlayers(cb, fresh) {
+  if (FPL && !fresh) { if (cb) cb(); return; }
+  if (cb) playersWaiters.push(cb);
+  if (playersLoading) return;
+  playersLoading = true;
+  setPlStatus('Loading FPL players…');
+  const params = { action: 'getPlayers' };
+  if (fresh) params.fresh = '1';
+  jsonpCall(params, function(res) {
+    playersLoading = false;
+    buildPlayerIndex(res);
+    const w = playersWaiters; playersWaiters = [];
+    w.forEach(fn => { try { fn(); } catch(e) { console.error(e); } });
+  }, function(err) {
+    playersLoading = false;
+    playersWaiters = [];
+    setPlStatus('⚠ ' + err + ' — click the box to retry');
+  }, 90000);
+}
+
+function refreshPlayers() {
+  FPL = null;
+  ensurePlayers(null, true);
+}
+
+function buildPlayerIndex(res) {
+  const f = res.fields || [];
+  const players = (res.players || []).map(row => {
+    const o = {}; f.forEach((k, i) => o[k] = row[i]); return o;
+  });
+  players.sort((a, b) => b.pts - a.pts);
+  const byLabel = {};
+  const options = [];
+  players.forEach(p => {
+    const team = (res.teams[p.team] || {}).short || '?';
+    let label = `${p.name} — ${team} ${POS_NAME[p.pos] || ''} £${(p.cost / 10).toFixed(1)}m`;
+    if (byLabel[label]) label += ` #${p.id}`;
+    p.label = label; p.teamShort = team;
+    byLabel[label] = p;
+    options.push(`<option value="${label.replace(/"/g, '&quot;')}">`);
+  });
+  document.getElementById('fpl-player-list').innerHTML = options.join('');
+  FPL = { meta: res, players, byLabel };
+  const t = new Date(res.updated);
+  const hhmm = t.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  setPlStatus(`${players.length} players · FPL data ${hhmm} · <span class="pl-refresh" onclick="refreshPlayers()">↻ refresh</span>`);
+}
+
+function onPlayerSearch(input, target) {
+  if (!FPL) { ensurePlayers(() => onPlayerSearch(input, target)); return; }
+  const p = FPL.byLabel[input.value];
+  if (!p) return;
+  fillPlayer(target, p);
+}
+
+// Works out every dashboard input from one FPL player record
+function derivePlayer(p) {
+  const m = FPL.meta;
+  const pos = POS_MAP[p.pos] || 'mid';
+  const attacker = pos === 'mid' || pos === 'fwd';
+  const fin = m.finishedGWs || 0;
+  const minsPct = fin > 0 ? Math.min(100, Math.round(p.mins / (fin * 90) * 100)) : 0;
+  let ops = 1.0;
+  if (attacker && p.xg >= 1.0) ops = Math.max(0.1, Math.min(2, Math.round(p.goals / p.xg * 100) / 100));
+  const fx = (m.nextFixtures && m.nextFixtures[p.team]) || [];
+  const bgw = fx.length === 0;
+  const dgw = fx.length >= 2;
+  const first = fx[0] || null;
+  let fdr = 3;
+  if (first) {
+    const avg = fx.reduce((s, x) => s + x.fdr, 0) / fx.length;
+    fdr = Math.max(2, Math.min(5, Math.round(avg)));
+  }
+  return {
+    pos, attacker, minsPct, ops, fx, bgw, dgw, first, fdr,
+    home: first ? !!first.home : true,
+    pen: p.pen === 1,
+    spc: p.fk === 1 || p.corners === 1,
+  };
+}
+
+function oppShort(teamId) { return ((FPL.meta.teams || {})[teamId] || {}).short || '?'; }
+
+function playerInfoHtml(p, d) {
+  const m = FPL.meta;
+  const chips = [];
+  if (p.status === 'a' || !p.status) chips.push('<span class="pl-chip ok">Available</span>');
+  else if (p.status === 'd') chips.push(`<span class="pl-chip warn">⚠ ${p.chance != null ? p.chance + '% chance' : 'Doubtful'}</span>`);
+  else chips.push(`<span class="pl-chip bad">❌ ${({i:'Injured', s:'Suspended', u:'Unavailable', n:'Not in squad'})[p.status] || 'Unavailable'}${p.chance != null ? ' · ' + p.chance + '%' : ''}</span>`);
+  if (d.bgw) chips.push(`<span class="pl-chip bad">Blank GW${m.nextGW}</span>`);
+  else {
+    const fxTxt = d.fx.map(x => `${oppShort(x.opp)} (${x.home ? 'H' : 'A'}) FDR ${x.fdr}`).join(' + ');
+    chips.push(`<span class="pl-chip info">GW${m.nextGW}${d.dgw ? ' DOUBLE' : ''}: ${fxTxt}</span>`);
+  }
+  if (d.pen) chips.push('<span class="pl-chip ok">Pens 1st</span>');
+  if (d.spc) chips.push('<span class="pl-chip ok">Set pieces 1st</span>');
+  if (p.mins < 300) chips.push('<span class="pl-chip warn">Small sample: under 300 mins</span>');
+  if (d.ops > 1.5) chips.push(`<span class="pl-chip warn">Overperforming xG ×${d.ops.toFixed(2)}</span>`);
+  const line = `£${(p.cost / 10).toFixed(1)}m · ${p.sel}% owned · ${p.pts} pts · ${p.goals}G ${p.assists}A · ${p.mins} mins${p.starts != null ? ' (' + p.starts + ' starts)' : ''}`;
+  const news = p.news ? `<div style="color:#f5d27a;margin-top:2px;">📰 ${p.news.replace(/</g, '&lt;')}</div>` : '';
+  return `<div>${line}</div><div>${chips.join('')}</div>${news}`;
+}
+
+function setSlider(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value = val;
+  el.dispatchEvent(new Event('input'));
+}
+
+function fillPlayer(target, p) {
+  const d = derivePlayer(p);
+  const m = FPL.meta;
+  if (target === 'eval') {
+    document.getElementById('p1name').value = p.name;
+    document.getElementById('p1pos').value = d.pos;
+    updatePositionMode(1);
+    setSlider('m_form', p.form);
+    setSlider('m_xg', p.xg90);
+    setSlider('m_xa', p.xa90);
+    setSlider('m_xgc', p.xgc90);
+    setSlider('m_mins', d.minsPct);
+    setSlider('m_ops', d.ops);
+    setSlider('m_h2h', 0.5);
+    document.getElementById('m_pen').checked = d.pen;
+    document.getElementById('m_spc').checked = d.spc;
+    document.getElementById('m_dgw').checked = d.dgw;
+    document.getElementById('m_bgw').checked = d.bgw;
+    document.getElementById('m_rot').checked = false;
+    document.getElementById('m_ret').checked = false;
+    document.getElementById('m_venue').value = d.home ? 'home' : 'away';
+    setFDR(d.fdr);
+    if (m.nextGW) document.getElementById('gw-input').value = m.nextGW;
+    // Prime Auto H2H with this fixture
+    const h2hBtn = document.getElementById('h2h-auto-btn');
+    const h2hPanel = document.getElementById('h2h-result-panel');
+    if (d.first) {
+      const opp = oppShort(d.first.opp).replace(/'/g, '');
+      currentFixtureHome   = d.home ? p.teamShort : opp;
+      currentFixtureAway   = d.home ? opp : p.teamShort;
+      currentFixtureIsHome = d.home;
+      if (h2hBtn) h2hBtn.style.display = 'inline-block';
+      setFixtureStatus(`✓ From FPL: GW${m.nextGW} ${currentFixtureHome} vs ${currentFixtureAway} · ${d.home ? '🏠 Home' : '✈️ Away'} · FDR ${d.fdr}${d.dgw ? ' · DOUBLE' : ''}. Press Auto H2H for the H2H score.`, '#00ff87');
+    } else {
+      if (h2hBtn) h2hBtn.style.display = 'none';
+      currentFixtureHome = ''; currentFixtureAway = '';
+      setFixtureStatus(`Blank gameweek: ${p.teamShort} have no fixture in GW${m.nextGW}.`, '#f0a500');
+    }
+    if (h2hPanel) h2hPanel.innerHTML = '';
+    document.getElementById('pl-info-eval').innerHTML = playerInfoHtml(p, d);
+    renderBreakdown();
+  } else {
+    const pre = target; // 'a' or 'b'
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+    const chk = (id, v) => { const el = document.getElementById(id); if (el) el.checked = v; };
+    set(`c_${pre}_name`, p.name);
+    set(`c_${pre}_pos`, d.pos);
+    set(`c${pre}_form`, p.form);
+    set(`c${pre}_xg`, p.xg90);
+    set(`c${pre}_xa`, p.xa90);
+    set(`c${pre}_xgc`, p.xgc90);
+    set(`c${pre}_ops`, d.ops);
+    set(`c${pre}_fdr`, d.fdr);
+    set(`c${pre}_mins`, d.minsPct);
+    set(`c${pre}_h2h`, 0.5);
+    chk(`c${pre}_home`, d.home);
+    chk(`c${pre}_dgw`, d.dgw);
+    chk(`c${pre}_bgw`, d.bgw);
+    chk(`c${pre}_rot`, false);
+    chk(`c${pre}_pen`, d.pen);
+    chk(`c${pre}_spc`, d.spc);
+    document.getElementById(`pl-info-${pre}`).innerHTML = playerInfoHtml(p, d);
+  }
+}
 </script>
 </body>
 </html>
