@@ -10,7 +10,7 @@
   body { font-family: 'Segoe UI', Arial, sans-serif; background: #0d1117; color: #e6edf3; min-height: 100vh; }
 
   /* HEADER */
-  .header { background: linear-gradient(135deg, #00ff87 0%, #00d4ff 100%); padding: 16px 24px; display: flex; align-items: center; gap: 16px; }
+  .header { background: linear-gradient(135deg, #00ff87 0%, #00d4ff 100%); padding: 16px 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
   .header h1 { color: #0d1117; font-size: 1.3rem; font-weight: 800; letter-spacing: -0.5px; }
   .header .sub { color: #1a2332; font-size: 0.8rem; margin-top: 2px; }
   .badge { background: #0d1117; color: #00ff87; font-size: 0.7rem; padding: 3px 8px; border-radius: 20px; font-weight: 700; letter-spacing: 1px; }
@@ -149,6 +149,54 @@
   .notice { background: #1a2332; border: 1px solid #0a3d6b; border-radius: 8px; padding: 12px 16px; font-size: 0.8rem; color: #8b949e; line-height: 1.5; }
   .notice strong { color: #00d4ff; }
 
+
+  /* GUIDES */
+  .guide-panel { background: #0f1a24; border: 1px solid #1f3a52; border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; }
+  .guide-panel summary { cursor: pointer; font-size: 0.84rem; font-weight: 700; color: #88bbff; list-style: none; display: flex; align-items: center; gap: 6px; user-select: none; }
+  .guide-panel summary::-webkit-details-marker { display: none; }
+  .guide-panel summary::before { content: '▶'; font-size: 0.6rem; transition: transform 0.2s; }
+  .guide-panel[open] > summary::before { transform: rotate(90deg); }
+  .guide-body { font-size: 0.8rem; color: #a8b3c4; line-height: 1.65; margin-top: 10px; }
+  .guide-body ol, .guide-body ul { padding-left: 20px; margin: 6px 0; }
+  .guide-body li { margin-bottom: 4px; }
+  .guide-body strong { color: #e6edf3; }
+  .guide-body code { background: #0d1117; border: 1px solid #21262d; border-radius: 4px; padding: 1px 5px; font-size: 0.76rem; color: #00ff87; }
+  .guide-link { color: #00d4ff; cursor: pointer; text-decoration: underline; }
+  .guide-h { font-size: 0.95rem; font-weight: 800; color: #e6edf3; margin: 4px 0 10px; }
+  .guide-card { background: #161b22; border: 1px solid #21262d; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .guide-card h2 { margin-bottom: 12px; }
+  .guide-toc { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+  .guide-toc a { font-size: 0.75rem; padding: 5px 12px; border-radius: 20px; background: #161b22; border: 1px solid #30363d; color: #8b949e; text-decoration: none; }
+  .guide-toc a:hover { color: #00ff87; border-color: #00ff87; }
+  .ref-table td { vertical-align: top; font-size: 0.78rem; color: #a8b3c4; line-height: 1.55; }
+  .ref-table td:first-child { color: #e6edf3; font-weight: 700; white-space: nowrap; }
+  .ref-table tr:hover td { background: transparent; }
+  .step-num { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #0d2b16; color: #00ff87; font-size: 0.72rem; font-weight: 800; margin-right: 8px; flex-shrink: 0; }
+  .step-row { display: flex; align-items: flex-start; margin-bottom: 10px; font-size: 0.82rem; color: #a8b3c4; line-height: 1.55; }
+  .step-row strong { color: #e6edf3; }
+  .tip-i { display: inline-block; margin-left: 4px; color: #3a6ea5; font-size: 0.72rem; cursor: help; }
+  .help-btn { background: #0d1117; color: #0d1117; border: none; border-radius: 20px; padding: 6px 14px; font-size: 0.75rem; font-weight: 800; cursor: pointer; margin-left: auto; color: #00ff87; }
+  .help-btn:hover { background: #161b22; }
+
+  /* CHIP PLANNER v2 */
+  .chip-half-title { font-size: 0.78rem; font-weight: 800; color: #e6edf3; text-transform: uppercase; letter-spacing: 0.6px; margin: 14px 0 8px; display: flex; justify-content: space-between; align-items: baseline; }
+  .chip-half-title span { font-size: 0.7rem; color: #8b949e; font-weight: 600; text-transform: none; letter-spacing: 0; }
+  .chip-card { cursor: default; }
+  .chip-card.used { opacity: 1; border-color: #4a2020; background: #1a0f0f; }
+  .chip-card.used .chip-icon, .chip-card.used .chip-name { opacity: 0.45; }
+  .chip-status { font-size: 0.66rem; margin-top: 4px; font-weight: 700; }
+  .chip-status.avail { color: #00ff87; }
+  .chip-status.done { color: #ff6b6b; }
+  .chip-status.locked { color: #8b949e; }
+  .chip-btn { margin-top: 8px; font-size: 0.66rem; padding: 4px 8px; border-radius: 6px; border: 1px solid #30363d; background: #21262d; color: #e6edf3; cursor: pointer; font-weight: 700; }
+  .chip-btn:hover { border-color: #8b949e; }
+  .deadline-banner { border-radius: 8px; padding: 12px 16px; font-size: 0.8rem; line-height: 1.55; margin-bottom: 4px; }
+  .deadline-banner.warn { background: #3d2f00; border: 1px solid #7a5400; color: #f5d27a; }
+  .deadline-banner.ok { background: #0d2b16; border: 1px solid #00803f; color: #9ef0c0; }
+  .deadline-banner.closed { background: #1a2332; border: 1px solid #0a3d6b; color: #8b949e; }
+  .deadline-banner strong { color: #fff; }
+  @media (max-width: 900px) { .chip-grid { grid-template-columns: repeat(2, 1fr); } }
+
   /* CANVAS CONTAINER */
   .chart-container { position: relative; height: 220px; margin-top: 12px; }
 </style>
@@ -161,6 +209,7 @@
     <h1>Decision Dashboard</h1>
     <div class="sub">Copacarrowbana FC — Weighted Probability Engine</div>
   </div>
+  <button class="help-btn" onclick="switchTab('guide')" title="Open the full guide">📖 How to use</button>
 </div>
 
 <div class="container">
@@ -172,10 +221,28 @@
     <button class="tab" onclick="switchTab('xi')">👕 Starting XI</button>
     <button class="tab" onclick="switchTab('chips')">🃏 Chip Planner</button>
     <button class="tab" onclick="switchTab('weights')">⚙️ Weights</button>
+    <button class="tab" onclick="switchTab('guide')">📖 Guide</button>
   </div>
 
   <!-- ===== TAB: EVALUATE ===== -->
   <div id="tab-evaluate">
+    <details class="guide-panel">
+      <summary>ℹ️ How this tab works</summary>
+      <div class="guide-body">
+        <p>Scores one player from 0 to 100 for a chosen decision (captain, transfer in, starting XI or bench). The decision type changes which metrics matter most. See the <strong>Weights</strong> tab.</p>
+        <ol>
+          <li><strong>Fixture Lookup</strong> (optional): enter the gameweek, press <strong>Auto Load</strong>, then click the player's team (🏠 home or ✈️ away). This sets FDR and home/away for you. Press <strong>🔍 Auto H2H</strong> to fill the H2H slider from the last few seasons' results at that ground.</li>
+          <li>Type the <strong>name</strong>, choose <strong>position</strong> and <strong>decision type</strong>.</li>
+          <li>Fill the <strong>metrics</strong> from the player's FPL profile. Hover the <span class="tip-i">ⓘ</span> next to each label to see where the number comes from.</li>
+          <li>Tick any <strong>modifiers</strong> that apply (penalty taker, rotation risk, double gameweek and so on).</li>
+          <li>Read the score and the breakdown bars, then <strong>+ Add to Shortlist</strong> or <strong>→ Send to Starting XI</strong>.</li>
+        </ol>
+        <p><strong>Score bands:</strong> 85+ Elite · 70–84 Strong · 55–69 Decent · 40–54 Average · under 40 Weak.</p>
+        <p><strong>GKP/DEF:</strong> the xG slider is swapped for <strong>xGC per 90</strong> (goals conceded expected, lower is better).</p>
+        <p><strong>Shortlist is not saved.</strong> It clears if the page is refreshed. Send players to the XI or note them before closing.</p>
+        <p style="margin-top:8px;">Full reference: <span class="guide-link" onclick="switchTab('guide')">📖 Guide tab</span></p>
+      </div>
+    </details>
     <div class="grid-2">
       <!-- LEFT: INPUT PANEL -->
       <div class="card">
@@ -375,9 +442,28 @@
 
   <!-- ===== TAB: COMPARE / TRANSFER ===== -->
   <div id="tab-compare" style="display:none;">
-    <div class="notice" style="margin-bottom:16px;">
-      <strong>Transfer Calculator:</strong> Set up Player A (outgoing) and Player B (incoming), pick the decision type, and get a recommendation on whether the transfer — including any hit cost — is justified.
-    </div>
+    <details class="guide-panel">
+      <summary>ℹ️ How this tab works</summary>
+      <div class="guide-body">
+        <p>Head-to-head between the player you'd sell (<strong>A, red</strong>) and the player you'd buy (<strong>B, green</strong>). Both are scored with the same engine as the Evaluate tab.</p>
+        <ol>
+          <li>Fill both columns with the same sources you use on the Evaluate tab. FDR here is the <strong>next gameweek only</strong>.</li>
+          <li>Set <strong>Free transfers available</strong>. Choosing <code>0</code> applies the −4 hit.</li>
+          <li>Press <strong>Evaluate Transfer</strong>.</li>
+        </ol>
+        <p><strong>How the verdict is decided:</strong> score of B minus score of A, minus 4 if it costs a hit.</p>
+        <ul>
+          <li><strong>+15 or more</strong>: ✅ Strong Transfer</li>
+          <li><strong>+5 to +14</strong>: ✅ Recommended</li>
+          <li><strong>0 to +4</strong>: ⚠️ Marginal. Only do it for a reason the numbers don't capture (injury, price drop, upcoming blank).</li>
+          <li><strong>Below 0</strong>: ❌ Not Recommended</li>
+          <li>Player B ticked as <strong>BGW</strong>: always ❌ Do Not Transfer</li>
+        </ul>
+        <p><strong>Caution:</strong> the −4 is an approximation. Dashboard score points are not FPL points, so treat a marginal verdict with a hit as "probably not".</p>
+        <p><strong>Goals/xG ratio</strong> and <strong>xG overperf check</strong> matter for attackers only. Leave them at <code>1.0</code> for GKP and DEF.</p>
+        <p style="margin-top:8px;">Full reference: <span class="guide-link" onclick="switchTab('guide')">📖 Guide tab</span></p>
+      </div>
+    </details>
     <div class="grid-2" style="align-items:start;">
 
       <!-- PLAYER A -->
@@ -481,9 +567,20 @@
 
   <!-- ===== TAB: STARTING XI ===== -->
   <div id="tab-xi" style="display:none;">
-    <div class="notice" style="margin-bottom:16px;">
-      <strong>Starting XI Builder:</strong> Add up to 15 squad players with their scores, then click "Build XI" to apply FPL formation constraints (1 GKP, 3–5 DEF, 2–5 MID, 1–3 FWD) and pick the optimal 11.
-    </div>
+    <details class="guide-panel">
+      <summary>ℹ️ How this tab works</summary>
+      <div class="guide-body">
+        <p>Picks your best 11 from up to 15 players using FPL formation rules: <strong>1 GKP, 3–5 DEF, 2–5 MID, 1–3 FWD</strong>.</p>
+        <ol>
+          <li>Score each squad player on the Evaluate tab with decision type <strong>Starting XI</strong>.</li>
+          <li>Use <strong>→ Send All to XI</strong> on the shortlist, or add players by hand here (name, position, score).</li>
+          <li>Tick <strong>Doubt</strong> for anyone flagged injured or uncertain. They're shown with a warning in the result.</li>
+          <li>Press <strong>Build Optimal XI</strong>. It fills the minimum per position with the highest scores, then the remaining spots with the best players left. The rest form the bench.</li>
+        </ol>
+        <p><strong>Save your squad:</strong> use <strong>⬇ Export</strong> to download it as a file and <strong>⬆ Import</strong> to reload it next week. The list is otherwise lost on refresh.</p>
+        <p style="margin-top:8px;">Full reference: <span class="guide-link" onclick="switchTab('guide')">📖 Guide tab</span></p>
+      </div>
+    </details>
     <div class="grid-2">
       <div class="card">
         <h2>Add Squad Player</h2>
@@ -524,78 +621,74 @@
 
   <!-- ===== TAB: CHIP PLANNER ===== -->
   <div id="tab-chips" style="display:none;">
+    <details class="guide-panel">
+      <summary>ℹ️ How this tab works</summary>
+      <div class="guide-body">
+        <p>Tracks which of your eight 2026/27 chips you've used. It's saved in this browser, so it stays between visits.</p>
+        <ol>
+          <li>Set <strong>Gameweek played</strong> to the gameweek you used the chip.</li>
+          <li>Press <strong>Mark used</strong> on that chip. Press <strong>Undo</strong> if you made a mistake.</li>
+        </ol>
+        <p>The banner counts down to the Set 1 deadline and tells you how many first-half chips are still unused, because they're lost if not played by then.</p>
+        <p style="margin-top:8px;">Full reference: <span class="guide-link" onclick="switchTab('guide')">📖 Guide tab</span></p>
+      </div>
+    </details>
+
     <div class="grid-2">
       <div class="card">
-        <h2>Available Chips — 2026/27</h2>
-        <div class="chip-grid">
-          <div class="chip-card" id="chip-wc1" onclick="toggleChip('wc1')">
-            <div class="chip-icon">🃏</div>
-            <div class="chip-name">WILDCARD 1</div>
-            <div class="chip-hint">GW1–19 window</div>
+        <h2>Your Chips — 2026/27</h2>
+        <div id="chip-deadline" class="deadline-banner closed"></div>
+        <div style="display:flex;align-items:flex-end;gap:10px;margin-top:10px;">
+          <div style="width:140px;">
+            <label style="margin-top:0;">Gameweek played</label>
+            <input type="number" id="chip-gw" min="1" max="38" value="1" style="padding:6px 8px;">
           </div>
-          <div class="chip-card" id="chip-wc2" onclick="toggleChip('wc2')">
-            <div class="chip-icon">🃏</div>
-            <div class="chip-name">WILDCARD 2</div>
-            <div class="chip-hint">GW20–38 window</div>
-          </div>
-          <div class="chip-card" id="chip-tc1" onclick="toggleChip('tc1')">
-            <div class="chip-icon">⭐</div>
-            <div class="chip-name">TRIPLE CAPTAIN 1</div>
-            <div class="chip-hint">Best in DGW</div>
-          </div>
-          <div class="chip-card" id="chip-tc2" onclick="toggleChip('tc2')">
-            <div class="chip-icon">⭐</div>
-            <div class="chip-name">TRIPLE CAPTAIN 2</div>
-            <div class="chip-hint">Best in DGW</div>
-          </div>
-          <div class="chip-card" id="chip-bb" onclick="toggleChip('bb')">
-            <div class="chip-icon">🚀</div>
-            <div class="chip-name">BENCH BOOST</div>
-            <div class="chip-hint">Best in DGW</div>
-          </div>
-          <div class="chip-card" id="chip-fh" onclick="toggleChip('fh')">
-            <div class="chip-icon">🔄</div>
-            <div class="chip-name">FREE HIT</div>
-            <div class="chip-hint">Best in BGW</div>
-          </div>
+          <div style="font-size:0.72rem;color:#8b949e;padding-bottom:8px;">Recorded against a chip when you press <strong style="color:#e6edf3;">Mark used</strong>.</div>
         </div>
-        <p style="font-size:0.75rem;color:#8b949e;margin-top:12px;">⚠️ Verify chip rules on the FPL site before each season — rules can change year-on-year (e.g. 2× TC was new in 2025/26).</p>
+        <div class="chip-half-title">Set 1 — first half <span>play before GW19 deadline</span></div>
+        <div class="chip-grid" id="chip-grid-1"></div>
+        <div class="chip-half-title">Set 2 — second half <span>refreshed after GW19</span></div>
+        <div class="chip-grid" id="chip-grid-2"></div>
       </div>
 
       <div class="card">
-        <h2>Chip Deployment Guide</h2>
+        <h2>2026/27 Chip Rules</h2>
+        <ul style="font-size:0.8rem;color:#a8b3c4;line-height:1.7;padding-left:18px;">
+          <li><strong style="color:#e6edf3;">Two of every chip</strong> (Wildcard, Free Hit, Triple Captain, Bench Boost), one set per half of the season. Eight in total.</li>
+          <li><strong style="color:#e6edf3;">Set 1 must be played before the GW19 deadline:</strong> 13:30 GMT, Saturday 2 January. Unused Set 1 chips <strong style="color:#ff6b6b;">do not carry over</strong>.</li>
+          <li><strong style="color:#e6edf3;">One chip per gameweek.</strong></li>
+          <li><strong style="color:#e6edf3;">Free Hit</strong> can't be played in GW1. If Free Hit 1 is used in GW19, Free Hit 2 can't be used in GW20.</li>
+          <li><strong style="color:#e6edf3;">Free transfers:</strong> up to five can be banked.</li>
+        </ul>
+        <p style="font-size:0.7rem;color:#555;margin-top:8px;">Source: premierleague.com, "What's happening with FPL chips in 2026/27" and "All you need to know about changes to FPL for 2026/27" (both July 2026). Checked 19 Nov 2026.</p>
+        <hr class="divider">
+        <h2>When to Play Each Chip</h2>
         <div class="breakdown-item">
           <div style="color:#00ff87;font-weight:700;font-size:0.85rem;">🃏 Wildcard</div>
-          <p style="font-size:0.8rem;color:#8b949e;margin-top:6px;line-height:1.5;">Use when squad has ≥3 premium assets to replace, or before a run of fixtures where the current squad is poorly positioned. Activating before a DGW round maximises value. Do not waste on single-position fixes.</p>
+          <p style="font-size:0.8rem;color:#8b949e;margin-top:6px;line-height:1.5;">Unlimited permanent transfers for one gameweek. Use it when three or more players need replacing, or ahead of a fixture run your squad is badly placed for. Not for a single-position fix.</p>
         </div>
         <hr class="divider">
         <div class="breakdown-item">
           <div style="color:#f0a500;font-weight:700;font-size:0.85rem;">⭐ Triple Captain</div>
-          <p style="font-size:0.8rem;color:#8b949e;margin-top:6px;line-height:1.5;">Maximum value on a DGW with your captain scoring 2+ fixtures. Target H (Home) fixture in DGW with easy FDR. Engine captain score >80 recommended before using TC.</p>
+          <p style="font-size:0.8rem;color:#8b949e;margin-top:6px;line-height:1.5;">Captain scores ×3 instead of ×2. Best when your captain has two fixtures (double gameweek) or an easy home game. Look for a <strong style="color:#e6edf3;">Captain</strong> score of 80+ on the Evaluate tab first.</p>
         </div>
         <hr class="divider">
         <div class="breakdown-item">
           <div style="color:#00d4ff;font-weight:700;font-size:0.85rem;">🚀 Bench Boost</div>
-          <p style="font-size:0.8rem;color:#8b949e;margin-top:6px;line-height:1.5;">Save for a DGW where your bench has ≥3 players with fixtures. Bench average needs to be strong — a typical bench in a non-DGW averages ~4–6 pts; in a DGW this can be 15–25 pts.</p>
+          <p style="font-size:0.8rem;color:#8b949e;margin-top:6px;line-height:1.5;">Your four bench players' points count too. Only worth it when all four have a fixture, ideally a double gameweek. Score your bench with decision type <strong style="color:#e6edf3;">Bench</strong> to check.</p>
         </div>
         <hr class="divider">
         <div class="breakdown-item">
           <div style="color:#ff6b6b;font-weight:700;font-size:0.85rem;">🔄 Free Hit</div>
-          <p style="font-size:0.8rem;color:#8b949e;margin-top:6px;line-height:1.5;">Best used in a BGW to field 11 players with fixtures. Squad reverts after the GW — plan temporary XI around that week's fixtures only, ignoring long-term value.</p>
+          <p style="font-size:0.8rem;color:#8b949e;margin-top:6px;line-height:1.5;">Unlimited transfers for one gameweek only. Your squad goes back to normal afterwards. Best in a blank gameweek when many of your players have no fixture. Pick that week's XI only, ignoring long-term value.</p>
         </div>
       </div>
     </div>
 
     <div class="card" style="margin-top:20px;">
-      <h2>GW Planner Notes</h2>
-      <div class="notice">
-        <strong>World Cup 2026 fatigue note (GW1–3):</strong> Players with deep tournament runs (semi-final or final) return with as little as 4 weeks before PL GW1. England, France, Brazil, Argentina, Spain, Germany players are highest risk for rotation or reduced minutes in GW1.
-        Consider FH in GW1 if your squad is heavily WC-fatigued and you don't want to burn a Wildcard.
-      </div>
-      <div style="margin-top:16px;">
-        <label>Notes (saved in session)</label>
-        <textarea id="chip-notes" style="width:100%;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;padding:10px;font-size:0.82rem;resize:vertical;min-height:80px;outline:none;" placeholder="e.g. GW6 potential DGW — save TC1..."></textarea>
-      </div>
+      <h2>Chip Notes</h2>
+      <label style="margin-top:0;">Notes (saved in this browser)</label>
+      <textarea id="chip-notes" oninput="saveChipNotes()" style="width:100%;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;padding:10px;font-size:0.82rem;resize:vertical;min-height:80px;outline:none;" placeholder="e.g. Watch for a double gameweek before GW19 to use Bench Boost 1..."></textarea>
     </div>
   </div>
 
@@ -604,19 +697,153 @@
     <div class="grid-2">
       <div id="weights-cards"></div>
       <div class="card">
-        <h2>Weight Rationale</h2>
-        <p style="font-size:0.82rem;color:#8b949e;line-height:1.7;">
-          <strong style="color:#e6edf3;">Captain:</strong> Form (0.30) and xG (0.25) dominate — we need ceiling, not consistency. Minutes weight is near-zero because premium captains almost always start.<br><br>
-          <strong style="color:#e6edf3;">Transfer:</strong> Fixture run (0.32) is the dominant factor across a 3-GW horizon. Buying a player into a blank costs more than any form difference.<br><br>
-          <strong style="color:#e6edf3;">Bench:</strong> Minutes reliability (0.48) dominates — we need players who will play, regardless of quality.<br><br>
-          <strong style="color:#e6edf3;">Starting XI:</strong> Balanced across form (0.25), xG (0.20), and fixture (0.22). More conservative than captain.<br><br>
-          <strong style="color:#00ff87;">Edit weights</strong> and press "Save Custom Weights" to apply them to the evaluate tab for this session.
-        </p>
+        <h2>How Weights Work</h2>
+        <div class="guide-body" style="margin-top:0;">
+          <p>Each decision type has its own set of weights. A weight is how much that metric counts towards the 0–100 score. Each set should <strong>add up to 1.00</strong>, and the total below each card warns you if it doesn't.</p>
+          <p><strong>Example:</strong> Form weight 0.25 and a player on 6.0 form. Form is measured out of 12, so 6.0 is half marks (0.5). 0.5 × 0.25 × 100 = <strong>12.5 points</strong> towards the score.</p>
+          <p><strong>The thinking behind each set:</strong></p>
+          <ul>
+            <li><strong>Captain:</strong> form and xG lead. You want ceiling, not consistency.</li>
+            <li><strong>Transfer:</strong> fixture leads, because buying into bad fixtures costs more than a form difference.</li>
+            <li><strong>Bench:</strong> minutes lead. A bench player only helps if he actually plays.</li>
+            <li><strong>Starting XI:</strong> a balance of form, xG and fixture.</li>
+          </ul>
+          <p><strong>Saving:</strong> press <strong>Save Custom Weights</strong>. They're stored in this browser and reload automatically next time. <strong>Reset to Defaults</strong> wipes your custom set.</p>
+          <p><strong>Mgr H2H</strong> is never filled automatically. Keep its weight at 0.01–0.03 or move it to H2H.</p>
+        </div>
         <div class="btn-row" style="margin-top:20px;">
           <button class="btn btn-primary" onclick="saveWeights()">Save Custom Weights</button>
           <button class="btn btn-secondary" onclick="resetWeights()">Reset to Defaults</button>
         </div>
         <div id="weight-save-msg" style="font-size:0.78rem;color:#00ff87;margin-top:8px;display:none;">✓ Weights saved and active</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TAB: GUIDE ===== -->
+  <div id="tab-guide" style="display:none;">
+    <div class="guide-toc">
+      <a href="#g-routine">Weekly routine</a>
+      <a href="#g-score">How the score works</a>
+      <a href="#g-inputs">Where to find each number</a>
+      <a href="#g-modifiers">Modifiers</a>
+      <a href="#g-transfer">Transfer verdicts</a>
+      <a href="#g-chips">Chips</a>
+      <a href="#g-trouble">Troubleshooting</a>
+      <a href="#g-limits">Known limitations</a>
+    </div>
+
+    <div class="guide-card" id="g-routine">
+      <h2>Weekly Routine</h2>
+      <div class="step-row"><span class="step-num">1</span><div><strong>Wait for scores to be final.</strong> FPL finalises gameweek scores at 09:00 UK time the day after the last match, so check from then.</div></div>
+      <div class="step-row"><span class="step-num">2</span><div><strong>Load next week's fixtures.</strong> Evaluate tab → 🏟️ Fixture Lookup → enter the next gameweek → <strong>Auto Load</strong>.</div></div>
+      <div class="step-row"><span class="step-num">3</span><div><strong>Score your candidates.</strong> For each player: click his team in the fixture list → <strong>🔍 Auto H2H</strong> → fill name, position, decision type and metrics → <strong>+ Add to Shortlist</strong>.</div></div>
+      <div class="step-row"><span class="step-num">4</span><div><strong>Check transfers.</strong> Compare / Transfer tab: weakest player you own as A, best target as B, set free transfers → <strong>Evaluate Transfer</strong>. Check FPL's Price Change Predictor before committing.</div></div>
+      <div class="step-row"><span class="step-num">5</span><div><strong>Pick a captain.</strong> Score your top two or three with decision type <strong>Captain</strong>. Highest score wins, unless a flag (rotation, injury return) says otherwise.</div></div>
+      <div class="step-row"><span class="step-num">6</span><div><strong>Set the team.</strong> Starting XI tab → <strong>Build Optimal XI</strong> → copy it into FPL. <strong>⬇ Export</strong> the squad so you can reload it next week.</div></div>
+      <div class="step-row"><span class="step-num">7</span><div><strong>Check chips.</strong> Chip Planner tab: any Set 1 chips left before the GW19 deadline?</div></div>
+    </div>
+
+    <div class="guide-card" id="g-score">
+      <h2>How the Score Works</h2>
+      <div class="guide-body" style="margin-top:0;">
+        <p>Every metric is converted to a value between 0 and 1, multiplied by its weight for the chosen decision type, then multiplied by 100. The results are added up to give the 0–100 score. If the overperformance check is above 1.5, up to 8 points are deducted.</p>
+        <table class="ref-table">
+          <tr><td>Form</td><td>0 to 12 pts/GW scale. 6.0 = 0.5.</td></tr>
+          <tr><td>xG per 90</td><td>0 to 1.0 scale. <strong>Anything above 1.0 counts as full marks</strong> (the slider goes higher, the score doesn't).</td></tr>
+          <tr><td>xA per 90</td><td>0 to 0.6 scale. Above 0.6 counts as full marks.</td></tr>
+          <tr><td>xGC per 90 (GKP/DEF)</td><td>0 to 3.0, reversed: 0 = full marks, 3.0 = zero.</td></tr>
+          <tr><td>FDR</td><td>2 = 1.00 · 3 = 0.75 · 4 = 0.45 · 5 = 0.25, plus 0.08 for a home game. Double gameweek ×1.8. Blank gameweek = 0.</td></tr>
+          <tr><td>Home/Away</td><td>Home = 1.00, Away = 0.35.</td></tr>
+          <tr><td>Minutes %</td><td>0 to 100 scale.</td></tr>
+          <tr><td>H2H, Mgr H2H</td><td>Used as entered (already 0 to 1).</td></tr>
+        </table>
+        <p style="margin-top:10px;"><strong>Score bands:</strong> 85+ Elite 🔥 · 70–84 Strong ✅ · 55–69 Decent 👍 · 40–54 Average ⚠️ · under 40 Weak ❌</p>
+        <p><strong>Reading the breakdown bars:</strong> they're sorted by points contributed. The top bar is the "Top Factor" shown on the shortlist. A score held up almost entirely by Fixture is less reliable than one spread across form and xG.</p>
+      </div>
+    </div>
+
+    <div class="guide-card" id="g-inputs">
+      <h2>Where to Find Each Number</h2>
+      <div class="guide-body" style="margin-top:0;">
+        <p>Most numbers are on the player's profile on the FPL site. Click a player's name anywhere in FPL → <strong>History</strong> tab. The table has a <strong>Totals</strong> row and a <strong>Per 90</strong> row. Scroll the table right if a column is hidden.</p>
+        <table class="ref-table">
+          <tr><td>Form</td><td>Shown on the player's FPL profile. FPL's own figure: average points per match over roughly the last month.</td></tr>
+          <tr><td>xG per 90</td><td>History tab → <strong>Per 90</strong> row → xG column.<br><strong>Watch for small samples:</strong> a player with under ~300 minutes can show huge per-90 figures from one or two good games.</td></tr>
+          <tr><td>xA per 90</td><td>History tab → <strong>Per 90</strong> row → xA column.</td></tr>
+          <tr><td>xGC per 90</td><td>History tab → Per 90 row → xGC column (GKP/DEF only). This reflects the team's defence as well as the player.</td></tr>
+          <tr><td>FDR</td><td>Set automatically when you click a team in Fixture Lookup. Otherwise use the FDR colour on the FPL fixtures page.</td></tr>
+          <tr><td>Minutes %</td><td>Total minutes (Totals row, MP) ÷ (gameweeks played × 90) × 100. Example: 720 minutes after 10 gameweeks = 720 ÷ 900 = 80.</td></tr>
+          <tr><td>H2H score</td><td>Press <strong>🔍 Auto H2H</strong> after clicking a team in Fixture Lookup. It's the selected team's win rate at that ground over recent seasons. 0.50 = no data or even.</td></tr>
+          <tr><td>Mgr H2H</td><td>No automatic source. Leave at 0.33 unless you know the managers' record.</td></tr>
+          <tr><td>Goals ÷ xG<br>(overperf check)</td><td>Totals row: <strong>GS ÷ xG</strong>. Use the <strong>season total</strong> xG, not the Per 90 figure. Example: 3 goals ÷ 1.7 xG = 1.76.<br>Leave at 1.00 for GKP and DEF, and for anyone with very few shots.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="guide-card" id="g-modifiers">
+      <h2>Modifiers</h2>
+      <div class="guide-body" style="margin-top:0;">
+        <table class="ref-table">
+          <tr><td>Double Gameweek</td><td>Fixture value ×1.8 (capped at full marks).</td></tr>
+          <tr><td>Blank Gameweek</td><td>Fixture value = 0. On the Compare tab, an incoming BGW player is always "Do Not Transfer".</td></tr>
+          <tr><td>Penalty taker</td><td>Adds 0.25 to xG/90 before scoring.</td></tr>
+          <tr><td>Set piece specialist</td><td>Adds 0.08 to xA/90 before scoring.</td></tr>
+          <tr><td>Rotation risk</td><td>Minutes value ×0.75. Use when there's a midweek European game or a manager hint about rotation.</td></tr>
+          <tr><td>Returning from injury</td><td>Minutes value ×0.65.</td></tr>
+          <tr><td>Overperf check</td><td>Above 1.5 deducts points: (ratio − 1.5) × 16, up to 8 points. Example: 1.76 → about 4 points off.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="guide-card" id="g-transfer">
+      <h2>Transfer Verdicts</h2>
+      <div class="guide-body" style="margin-top:0;">
+        <p><strong>Net gain</strong> = Player B score − Player A score − 4 (only if free transfers = 0).</p>
+        <table class="ref-table">
+          <tr><td>✅ Strong Transfer</td><td>Net gain +15 or more</td></tr>
+          <tr><td>✅ Recommended</td><td>+5 to +14</td></tr>
+          <tr><td>⚠️ Marginal</td><td>0 to +4. Only for reasons outside the numbers.</td></tr>
+          <tr><td>❌ Not Recommended</td><td>Below 0</td></tr>
+          <tr><td>❌ Do Not Transfer</td><td>Player B has a blank gameweek</td></tr>
+        </table>
+        <p style="margin-top:10px;"><strong>Not yet considered:</strong> price and your bank, fixtures beyond next week, and whether the player you're selling is the weakest in your squad. These are planned for the next update.</p>
+      </div>
+    </div>
+
+    <div class="guide-card" id="g-chips">
+      <h2>Chips 2026/27</h2>
+      <div class="guide-body" style="margin-top:0;">
+        <p>Two sets of four chips (Wildcard, Free Hit, Triple Captain, Bench Boost). <strong>Set 1 must be played before the GW19 deadline, 13:30 GMT Saturday 2 January</strong>, and unused Set 1 chips are lost. One chip per gameweek. Free Hit can't be used in GW1, or in GW20 if Free Hit 1 was used in GW19. Track yours on the <span class="guide-link" onclick="switchTab('chips')">🃏 Chip Planner</span> tab.</p>
+      </div>
+    </div>
+
+    <div class="guide-card" id="g-trouble">
+      <h2>Troubleshooting</h2>
+      <div class="guide-body" style="margin-top:0;">
+        <table class="ref-table">
+          <tr><td>Page looks the same after an update</td><td>GitHub is serving an old copy. Add <code>?v=</code> and a new number to the address, e.g. <code>…/FPL_Decision_Dashboard.html?v=13</code>. Check with <strong>Cmd+Option+U</strong> (view source) if unsure.</td></tr>
+          <tr><td>Safari shows old version</td><td>Develop menu → Empty Caches, or open it in a Private window.</td></tr>
+          <tr><td>Auto Load fails</td><td>Wait a few seconds and press it again (the data source can be slow to wake). Otherwise use <strong>✏️ Manual</strong> to enter the fixture yourself.</td></tr>
+          <tr><td>Auto H2H says "Timed out"</td><td>Press it again. The first lookup for a fixture can take 10–20 seconds. After that it's remembered for 24 hours.</td></tr>
+          <tr><td>Auto H2H "team not found"</td><td>A team code mismatch between FPL and football-data.org. Set the H2H slider by hand and let me know which team it was.</td></tr>
+          <tr><td>Weights reset themselves</td><td>Weights are saved per browser. Chrome and Safari keep separate copies, and a Private window saves nothing.</td></tr>
+          <tr><td>Shortlist or XI disappeared</td><td>Neither is saved on refresh yet. Use <strong>⬇ Export</strong> on the Starting XI tab to keep your squad.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="guide-card" id="g-limits">
+      <h2>Known Limitations</h2>
+      <div class="guide-body" style="margin-top:0;">
+        <ul>
+          <li>Metrics are typed in by hand. FPL publishes most of them, and auto-fill is the next planned update.</li>
+          <li>xG above 1.0 and xA above 0.6 per 90 don't score any higher.</li>
+          <li>Per-90 figures aren't weighted by minutes played, so small samples can inflate a score.</li>
+          <li>Fixture difficulty covers the next gameweek only, not a fixture run.</li>
+          <li>Transfers don't look at price, your bank or your current squad.</li>
+          <li>The −4 hit is an approximation in score points, not FPL points.</li>
+        </ul>
       </div>
     </div>
   </div>
@@ -1226,10 +1453,87 @@ function buildXI() {
 // ============================================================
 // CHIP PLANNER
 // ============================================================
-const chipStates = {wc1:false,wc2:false,tc1:false,tc2:false,bb:false,fh:false};
+// 2026/27 rules: two sets of Wildcard, Free Hit, Triple Captain, Bench Boost.
+// Set 1 must be played before the GW19 deadline (13:30 GMT Sat 2 Jan 2027).
+const CHIP_DEFS = [
+  {key:'wc', name:'Wildcard',       icon:'🃏'},
+  {key:'fh', name:'Free Hit',       icon:'🔄'},
+  {key:'tc', name:'Triple Captain', icon:'⭐'},
+  {key:'bb', name:'Bench Boost',    icon:'🚀'},
+];
+const SET1_DEADLINE = new Date('2027-01-02T13:30:00Z'); // GMT = UTC in January
+const CHIP_STORE_KEY = 'fpl_chips_2627';
+let chipStates = {};
+try { chipStates = JSON.parse(localStorage.getItem(CHIP_STORE_KEY) || '{}') || {}; } catch(_) { chipStates = {}; }
+
+function saveChipStates() {
+  try { localStorage.setItem(CHIP_STORE_KEY, JSON.stringify(chipStates)); } catch(_) {}
+}
+
+function renderChips() {
+  const set1Closed = new Date() >= SET1_DEADLINE;
+  [1, 2].forEach(set => {
+    const grid = document.getElementById('chip-grid-' + set);
+    if (!grid) return;
+    grid.innerHTML = CHIP_DEFS.map(c => {
+      const id = c.key + set;
+      const st = chipStates[id] || {};
+      const lost = set === 1 && set1Closed && !st.used;
+      const status = st.used
+        ? `<div class="chip-status done">Used${st.gw ? ' — GW' + st.gw : ''}</div>`
+        : lost ? `<div class="chip-status locked">Expired</div>`
+               : `<div class="chip-status avail">Available</div>`;
+      const btn = lost ? '' : `<button class="chip-btn" onclick="toggleChip('${id}')">${st.used ? 'Undo' : 'Mark used'}</button>`;
+      return `<div class="chip-card ${st.used || lost ? 'used' : ''}" id="chip-${id}">
+        <div class="chip-icon">${c.icon}</div>
+        <div class="chip-name">${c.name.toUpperCase()} ${set}</div>
+        ${status}${btn}
+      </div>`;
+    }).join('');
+  });
+  renderChipDeadline();
+}
+
+function renderChipDeadline() {
+  const el = document.getElementById('chip-deadline');
+  if (!el) return;
+  const now = new Date();
+  const unused = CHIP_DEFS.filter(c => !(chipStates[c.key + '1'] || {}).used).map(c => c.name);
+  if (now >= SET1_DEADLINE) {
+    el.className = 'deadline-banner closed';
+    el.innerHTML = '<strong>Set 1 window closed</strong> (GW19 deadline passed). Set 2 is now in play.';
+    return;
+  }
+  const days = Math.ceil((SET1_DEADLINE - now) / 86400000);
+  if (!unused.length) {
+    el.className = 'deadline-banner ok';
+    el.innerHTML = `<strong>All Set 1 chips used.</strong> ${days} day${days === 1 ? '' : 's'} until the GW19 deadline.`;
+  } else {
+    el.className = 'deadline-banner warn';
+    el.innerHTML = `<strong>${days} day${days === 1 ? '' : 's'} left</strong> to play Set 1 (GW19 deadline, 13:30 GMT Sat 2 Jan). ` +
+      `<strong>${unused.length} unused:</strong> ${unused.join(', ')}. Unused Set 1 chips are lost.`;
+  }
+}
+
 function toggleChip(id) {
-  chipStates[id] = !chipStates[id];
-  document.getElementById('chip-'+id).classList.toggle('selected', chipStates[id]);
+  const st = chipStates[id] || {};
+  if (st.used) {
+    chipStates[id] = { used: false };
+  } else {
+    const gw = parseInt(document.getElementById('chip-gw').value) || null;
+    if (id.endsWith('1') && gw && gw > 19) { alert('Set 1 chips must be played by GW19.'); return; }
+    if (id.endsWith('2') && gw && gw < 20) { alert('Set 2 chips are for the second half (GW20 onwards).'); return; }
+    if (id === 'fh1' && gw === 1) { alert('Free Hit cannot be played in GW1.'); return; }
+    const clash = Object.entries(chipStates).find(([k, v]) => k !== id && v.used && gw && v.gw === gw);
+    if (clash) { alert('Only one chip can be played per gameweek — GW' + gw + ' already has one recorded.'); return; }
+    chipStates[id] = { used: true, gw };
+  }
+  saveChipStates();
+  renderChips();
+}
+
+function saveChipNotes() {
+  try { localStorage.setItem('fpl_chip_notes', document.getElementById('chip-notes').value); } catch(_) {}
 }
 
 // ============================================================
@@ -1275,7 +1579,7 @@ function resetWeights() {
 // ============================================================
 // TABS
 // ============================================================
-const TABS = ['evaluate','compare','xi','chips','weights'];
+const TABS = ['evaluate','compare','xi','chips','weights','guide'];
 function switchTab(name) {
   TABS.forEach(t => {
     document.getElementById('tab-'+t).style.display = t===name?'block':'none';
@@ -1284,6 +1588,8 @@ function switchTab(name) {
     el.classList.toggle('active', TABS[i]===name);
   });
   if (name === 'weights') renderWeightsEditor();
+  if (name === 'chips') renderChips();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ============================================================
@@ -1654,6 +1960,36 @@ try {
 } catch(_) {}
 
 renderWeightsEditor();
+
+// ── Input tooltips: hover the ⓘ next to a label to see where the number comes from ──
+const INPUT_TIPS = {
+  m_form: "FPL player profile → Form (average points per match over roughly the last month).",
+  m_xg:   "FPL profile → History → Per 90 row → xG. Beware small samples (under ~300 minutes). Above 1.0 scores the same as 1.0.",
+  m_xa:   "FPL profile → History → Per 90 row → xA. Above 0.6 scores the same as 0.6.",
+  m_xgc:  "GKP/DEF only. FPL profile → History → Per 90 row → xGC. Lower is better.",
+  m_fdr:  "Set automatically by clicking a team in Fixture Lookup.",
+  m_mins: "Total minutes ÷ (gameweeks played × 90) × 100. E.g. 720 mins after 10 GWs = 80.",
+  m_h2h:  "Use 🔍 Auto H2H after clicking a team in Fixture Lookup. 0.50 = no data or even.",
+  m_mgr:  "No automatic source. Leave at 0.33 unless you know the managers' record.",
+  m_ops:  "Totals row: goals scored ÷ season total xG (not per 90). Leave at 1.00 for GKP/DEF and small samples.",
+};
+function applyInputTips() {
+  Object.entries(INPUT_TIPS).forEach(([id, tip]) => {
+    const input = document.getElementById(id);
+    if (!input) return;
+    const label = input.closest('.metric-row') ? input.closest('.metric-row').querySelector('label') : null;
+    if (!label || label.querySelector('.tip-i')) return;
+    label.title = tip;
+    const i = document.createElement('span');
+    i.className = 'tip-i';
+    i.textContent = 'ⓘ';
+    i.title = tip;
+    label.appendChild(i);
+  });
+}
+applyInputTips();
+try { const n = localStorage.getItem('fpl_chip_notes'); if (n) document.getElementById('chip-notes').value = n; } catch(_) {}
+renderChips();
 </script>
 </body>
 </html>
