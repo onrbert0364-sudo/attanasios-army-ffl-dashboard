@@ -1,0 +1,2696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FPL Decision Dashboard — Copacarrowbana FC 2026/27</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0d1117; color: #e6edf3; min-height: 100vh; }
+
+  /* HEADER */
+  .header { background: linear-gradient(135deg, #00ff87 0%, #00d4ff 100%); padding: 16px 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .header h1 { color: #0d1117; font-size: 1.3rem; font-weight: 800; letter-spacing: -0.5px; }
+  .header .sub { color: #1a2332; font-size: 0.8rem; margin-top: 2px; }
+  .badge { background: #0d1117; color: #00ff87; font-size: 0.7rem; padding: 3px 8px; border-radius: 20px; font-weight: 700; letter-spacing: 1px; }
+
+  /* LAYOUT */
+  .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  /* CARDS */
+  .card { background: #161b22; border: 1px solid #21262d; border-radius: 12px; padding: 20px; }
+  .card h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: #8b949e; margin-bottom: 16px; }
+  .card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 12px; }
+
+  /* TABS */
+  .tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 20px; background: #161b22; border-radius: 10px; padding: 4px; }
+  .tab { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; background: transparent; color: #8b949e; }
+  .tab.active { background: #00ff87; color: #0d1117; }
+  .tab:hover:not(.active) { background: #21262d; color: #e6edf3; }
+
+  /* FORM ELEMENTS */
+  label { font-size: 0.78rem; color: #8b949e; display: block; margin-bottom: 5px; margin-top: 12px; }
+  input[type=text], input[type=number], select {
+    width: 100%; background: #0d1117; border: 1px solid #30363d; border-radius: 6px;
+    color: #e6edf3; padding: 8px 10px; font-size: 0.85rem; outline: none; transition: border 0.2s;
+  }
+  input[type=text]:focus, input[type=number]:focus, select:focus { border-color: #00ff87; }
+  input[type=range] { width: 100%; accent-color: #00ff87; cursor: pointer; margin-top: 4px; }
+
+  .metric-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .metric-row label { margin: 0; flex: 1; font-size: 0.8rem; color: #8b949e; min-width: 120px; }
+  .metric-row input[type=range] { flex: 2; }
+  .metric-val { min-width: 40px; text-align: right; font-size: 0.85rem; font-weight: 700; color: #00ff87; }
+
+  /* BUTTONS */
+  .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 700; transition: all 0.2s; }
+  .btn-primary { background: #00ff87; color: #0d1117; }
+  .btn-primary:hover { background: #00cc6a; }
+  .btn-secondary { background: #21262d; color: #e6edf3; border: 1px solid #30363d; }
+  .btn-secondary:hover { background: #30363d; }
+  .btn-danger { background: #da3633; color: #fff; }
+  .btn-danger:hover { background: #b91c1c; }
+  .btn-row { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+
+  /* SCORE DISPLAY */
+  .score-big { font-size: 4rem; font-weight: 900; line-height: 1; }
+  .score-label { font-size: 0.75rem; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+  .score-grade { font-size: 1.1rem; font-weight: 700; margin-top: 6px; }
+
+  /* BREAKDOWN BARS */
+  .breakdown-item { margin-bottom: 10px; }
+  .breakdown-header { display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px; }
+  .breakdown-name { color: #8b949e; }
+  .breakdown-val { color: #e6edf3; font-weight: 700; }
+  .bar-track { height: 8px; background: #21262d; border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+
+  /* FLAGS */
+  .flags { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .flag { font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+  .flag-warn  { background: #3d2f00; color: #f0a500; border: 1px solid #7a5400; }
+  .flag-good  { background: #0d2b16; color: #00ff87; border: 1px solid #00803f; }
+  .flag-info  { background: #0a1f3a; color: #00d4ff; border: 1px solid #0069a8; }
+  .flag-alert { background: #2d1515; color: #ff6b6b; border: 1px solid #8b2020; }
+
+  /* COMPARISON */
+  .vs-divider { display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 900; color: #8b949e; padding: 0 10px; }
+
+  /* TRANSFER CALC */
+  .transfer-result { background: #0d1117; border: 1px solid #21262d; border-radius: 8px; padding: 16px; margin-top: 16px; }
+  .transfer-verdict { font-size: 1.1rem; font-weight: 800; }
+  .verdict-yes { color: #00ff87; }
+  .verdict-no  { color: #ff6b6b; }
+  .verdict-maybe { color: #f0a500; }
+
+  /* WEIGHT EDITOR */
+  .weight-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; }
+  .w-row { display: flex; align-items: center; gap: 6px; }
+  .w-row label { margin: 0; font-size: 0.75rem; min-width: 80px; }
+  .w-row input[type=number] { width: 52px; padding: 4px 6px; font-size: 0.78rem; }
+  .weight-total { font-size: 0.8rem; margin-top: 8px; }
+
+  /* SECTION DIVIDER */
+  .divider { border: none; border-top: 1px solid #21262d; margin: 20px 0; }
+
+  /* TOGGLE */
+  .toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+  .toggle-row label { margin: 0; font-size: 0.82rem; color: #e6edf3; }
+  input[type=checkbox] { accent-color: #00ff87; width: 16px; height: 16px; cursor: pointer; }
+
+  /* FIXTURE HELPER */
+  .fixture-panel { background: #0d1117; border: 1px solid #21262d; border-radius: 10px; padding: 14px; margin-bottom: 16px; }
+  .fixture-panel summary { cursor: pointer; font-size: 0.82rem; font-weight: 700; color: #00d4ff; list-style: none; display: flex; align-items: center; gap: 6px; user-select: none; }
+  .fixture-panel summary::before { content: '▶'; font-size: 0.65rem; transition: transform 0.2s; }
+  details[open] > summary::before { transform: rotate(90deg); }
+  .fdr-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .fdr-pill { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; cursor: pointer; border: 2px solid transparent; transition: all 0.15s; }
+  .fdr-pill:hover { opacity: 0.85; }
+  .fdr-pill.active-pill { border-color: #fff; }
+  .fdr-2 { background: #0d3320; color: #00ff87; }
+  .fdr-3 { background: #2a2d10; color: #d4e030; }
+  .fdr-4 { background: #3a1f00; color: #f0a500; }
+  .fdr-5 { background: #3a0d0d; color: #ff6b6b; }
+  .fixture-result { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 12px; margin-top: 10px; display: none; }
+  .fixture-vs { font-size: 1rem; font-weight: 800; }
+  .fixture-meta { font-size: 0.75rem; color: #8b949e; margin-top: 4px; }
+  .fixture-apply { font-size: 0.72rem; color: #00ff87; cursor: pointer; margin-top: 8px; display: inline-block; text-decoration: underline; }
+  .api-key-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+  .api-key-row input { flex: 1; font-size: 0.78rem; padding: 6px 8px; }
+  .api-key-row .btn { padding: 6px 12px; font-size: 0.75rem; white-space: nowrap; }
+
+  /* CHIP PLANNER */
+  .chip-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 4px; }
+  .chip-card { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 12px; text-align: center; cursor: pointer; transition: all 0.2s; }
+  .chip-card.used { opacity: 0.4; }
+  .chip-card.selected { border-color: #00ff87; background: #0d2b16; }
+  .chip-card:hover:not(.used) { border-color: #8b949e; }
+  .chip-icon { font-size: 1.5rem; }
+  .chip-name { font-size: 0.7rem; font-weight: 700; margin-top: 6px; }
+  .chip-hint { font-size: 0.65rem; color: #8b949e; margin-top: 4px; }
+
+  /* TABLE */
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  th { text-align: left; padding: 8px 10px; color: #8b949e; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #21262d; }
+  td { padding: 8px 10px; border-bottom: 1px solid #161b22; }
+  tr:hover td { background: #21262d; }
+  .rank-num { font-weight: 800; color: #00ff87; }
+  .pos-badge { font-size: 0.68rem; padding: 2px 6px; border-radius: 4px; font-weight: 700; }
+  .pos-gkp { background: #1a3a1a; color: #00ff87; }
+  .pos-def { background: #1a2a3a; color: #00d4ff; }
+  .pos-mid { background: #2a2a1a; color: #f0e030; }
+  .pos-fwd { background: #3a1a1a; color: #ff6b6b; }
+
+  /* NOTICE */
+  .notice { background: #1a2332; border: 1px solid #0a3d6b; border-radius: 8px; padding: 12px 16px; font-size: 0.8rem; color: #8b949e; line-height: 1.5; }
+  .notice strong { color: #00d4ff; }
+
+
+  /* GUIDES */
+  .guide-panel { background: #0f1a24; border: 1px solid #1f3a52; border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; }
+  .guide-panel summary { cursor: pointer; font-size: 0.84rem; font-weight: 700; color: #88bbff; list-style: none; display: flex; align-items: center; gap: 6px; user-select: none; }
+  .guide-panel summary::-webkit-details-marker { display: none; }
+  .guide-panel summary::before { content: '▶'; font-size: 0.6rem; transition: transform 0.2s; }
+  .guide-panel[open] > summary::before { transform: rotate(90deg); }
+  .guide-body { font-size: 0.8rem; color: #a8b3c4; line-height: 1.65; margin-top: 10px; }
+  .guide-body ol, .guide-body ul { padding-left: 20px; margin: 6px 0; }
+  .guide-body li { margin-bottom: 4px; }
+  .guide-body strong { color: #e6edf3; }
+  .guide-body code { background: #0d1117; border: 1px solid #21262d; border-radius: 4px; padding: 1px 5px; font-size: 0.76rem; color: #00ff87; }
+  .guide-link { color: #00d4ff; cursor: pointer; text-decoration: underline; }
+  .guide-h { font-size: 0.95rem; font-weight: 800; color: #e6edf3; margin: 4px 0 10px; }
+  .guide-card { background: #161b22; border: 1px solid #21262d; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .guide-card h2 { margin-bottom: 12px; }
+  .guide-toc { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+  .guide-toc a { font-size: 0.75rem; padding: 5px 12px; border-radius: 20px; background: #161b22; border: 1px solid #30363d; color: #8b949e; text-decoration: none; }
+  .guide-toc a:hover { color: #00ff87; border-color: #00ff87; }
+  .ref-table td { vertical-align: top; font-size: 0.78rem; color: #a8b3c4; line-height: 1.55; }
+  .ref-table td:first-child { color: #e6edf3; font-weight: 700; white-space: nowrap; }
+  .ref-table tr:hover td { background: transparent; }
+  .step-num { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #0d2b16; color: #00ff87; font-size: 0.72rem; font-weight: 800; margin-right: 8px; flex-shrink: 0; }
+  .step-row { display: flex; align-items: flex-start; margin-bottom: 10px; font-size: 0.82rem; color: #a8b3c4; line-height: 1.55; }
+  .step-row strong { color: #e6edf3; }
+  .tip-i { display: inline-block; margin-left: 4px; color: #3a6ea5; font-size: 0.72rem; cursor: help; }
+  .help-btn { background: #0d1117; color: #0d1117; border: none; border-radius: 20px; padding: 6px 14px; font-size: 0.75rem; font-weight: 800; cursor: pointer; margin-left: auto; color: #00ff87; }
+  .help-btn:hover { background: #161b22; }
+
+  /* FPL PLAYER SEARCH */
+  .fpl-search { background: #0d1f14; border: 1px solid #1d4d2e; border-radius: 10px; padding: 10px 12px 12px; margin-bottom: 4px; }
+  .fpl-search label { margin-top: 0; color: #00ff87; font-weight: 700; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .fpl-search label .pl-status { font-weight: 500; color: #8b949e; font-size: 0.68rem; }
+  .fpl-search label .pl-refresh { color: #00d4ff; cursor: pointer; font-weight: 600; font-size: 0.68rem; }
+  .pl-info { font-size: 0.74rem; color: #a8b3c4; line-height: 1.6; margin-top: 8px; }
+  .pl-info:empty { display: none; }
+  .pl-info .pl-chip { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 0.66rem; font-weight: 700; margin: 2px 4px 2px 0; }
+  .pl-chip.ok { background: #0d2b16; color: #00ff87; border: 1px solid #00803f; }
+  .pl-chip.warn { background: #3d2f00; color: #f5d27a; border: 1px solid #7a5400; }
+  .pl-chip.bad { background: #3d0f0f; color: #ff8a8a; border: 1px solid #7a2020; }
+  .pl-chip.info { background: #0a1f3a; color: #88bbff; border: 1px solid #1f3a52; }
+
+  /* MY TEAM */
+  .fdr-1 { background: #0a3d2a; color: #3dffb0; }
+  .mt-head { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; margin-bottom: 14px; }
+  .mt-stat { background: #0d1117; border: 1px solid #21262d; border-radius: 8px; padding: 8px 14px; min-width: 110px; }
+  .mt-stat .k { font-size: 0.66rem; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; }
+  .mt-stat .v { font-size: 1.05rem; font-weight: 800; color: #e6edf3; }
+  .mt-stat select { padding: 2px 6px; font-size: 0.95rem; font-weight: 800; width: auto; }
+  .mt-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+  .mt-table th { text-align: left; font-size: 0.66rem; color: #8b949e; text-transform: uppercase; letter-spacing: 0.4px; padding: 6px 6px; border-bottom: 1px solid #21262d; white-space: nowrap; }
+  .mt-table td { padding: 6px 6px; border-bottom: 1px solid #161b22; vertical-align: middle; }
+  .mt-table tr.sel td { background: #1a1f2b; }
+  .mt-table tr:hover td { background: #141a22; }
+  .fx-cell { display: inline-block; min-width: 46px; text-align: center; padding: 2px 4px; border-radius: 5px; font-size: 0.64rem; font-weight: 700; margin-right: 2px; line-height: 1.25; }
+  .fx-blank { background: #21262d; color: #555; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .sell-tag { font-size: 0.62rem; font-weight: 800; padding: 1px 6px; border-radius: 8px; background: #3d0f0f; color: #ff8a8a; border: 1px solid #7a2020; }
+  .gain-pos { color: #00ff87; font-weight: 800; }
+  .gain-neg { color: #ff6b6b; font-weight: 800; }
+  .mt-scroll { overflow-x: auto; }
+  .new-tag { font-size: 0.62rem; font-weight: 800; padding: 1px 6px; border-radius: 8px; background: #0d2b16; color: #00ff87; border: 1px solid #00803f; margin-right: 4px; }
+  .pend-box { background: #0d1f14; border: 1px solid #1d4d2e; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-size: 0.78rem; color: #a8b3c4; }
+  .pend-box .pend-row { display: flex; align-items: center; gap: 10px; padding: 3px 0; flex-wrap: wrap; }
+  .pend-box strong { color: #e6edf3; }
+
+  /* CHIP PLANNER v2 */
+  .chip-half-title { font-size: 0.78rem; font-weight: 800; color: #e6edf3; text-transform: uppercase; letter-spacing: 0.6px; margin: 14px 0 8px; display: flex; justify-content: space-between; align-items: baseline; }
+  .chip-half-title span { font-size: 0.7rem; color: #8b949e; font-weight: 600; text-transform: none; letter-spacing: 0; }
+  .chip-card { cursor: default; }
+  .chip-card.used { opacity: 1; border-color: #4a2020; background: #1a0f0f; }
+  .chip-card.used .chip-icon, .chip-card.used .chip-name { opacity: 0.45; }
+  .chip-status { font-size: 0.66rem; margin-top: 4px; font-weight: 700; }
+  .chip-status.avail { color: #00ff87; }
+  .chip-status.done { color: #ff6b6b; }
+  .chip-status.locked { color: #8b949e; }
+  .chip-btn { margin-top: 8px; font-size: 0.66rem; padding: 4px 8px; border-radius: 6px; border: 1px solid #30363d; background: #21262d; color: #e6edf3; cursor: pointer; font-weight: 700; }
+  .chip-btn:hover { border-color: #8b949e; }
+  .deadline-banner { border-radius: 8px; padding: 12px 16px; font-size: 0.8rem; line-height: 1.55; margin-bottom: 4px; }
+  .deadline-banner.warn { background: #3d2f00; border: 1px solid #7a5400; color: #f5d27a; }
+  .deadline-banner.ok { background: #0d2b16; border: 1px solid #00803f; color: #9ef0c0; }
+  .deadline-banner.closed { background: #1a2332; border: 1px solid #0a3d6b; color: #8b949e; }
+  .deadline-banner strong { color: #fff; }
+  @media (max-width: 900px) { .chip-grid { grid-template-columns: repeat(2, 1fr); } }
+
+  /* CANVAS CONTAINER */
+  .chart-container { position: relative; height: 220px; margin-top: 12px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="badge">FPL 2026/27</div>
+    <h1>Decision Dashboard</h1>
+    <div class="sub">Copacarrowbana FC — Weighted Probability Engine</div>
+  </div>
+  <button class="help-btn" onclick="switchTab('guide')" title="Open the full guide">📖 How to use</button>
+</div>
+
+<div class="container">
+
+  <!-- TABS -->
+  <div class="tabs" style="margin-top:20px;">
+    <button class="tab" onclick="switchTab('myteam')">👥 My Team</button>
+    <button class="tab active" onclick="switchTab('evaluate')">⚡ Evaluate Player</button>
+    <button class="tab" onclick="switchTab('compare')">⚖️ Compare / Transfer</button>
+    <button class="tab" onclick="switchTab('xi')">👕 Starting XI</button>
+    <button class="tab" onclick="switchTab('chips')">🃏 Chip Planner</button>
+    <button class="tab" onclick="switchTab('weights')">⚙️ Weights</button>
+    <button class="tab" onclick="switchTab('guide')">📖 Guide</button>
+  </div>
+
+  <!-- ===== TAB: EVALUATE ===== -->
+
+  <!-- ===== TAB: MY TEAM ===== -->
+  <div id="tab-myteam" style="display:none;">
+    <details class="guide-panel">
+      <summary>ℹ️ How this tab works</summary>
+      <div class="guide-body">
+        <p>Loads your FPL squad and ranks every player, so the weakest ones sit at the top as sell candidates. Click any player to see the best replacements you can afford.</p>
+        <ol>
+          <li>The squad is your team <strong>as at the last deadline</strong>. If you've already made transfers this week, click the player you sold and record who you bought (<strong>✓ Made it</strong>). The table, bank and free transfers then reflect your real squad.</li>
+          <li><strong>Check Free transfers.</strong> FPL doesn't make this public, so it's estimated from your history. Correct it if it's wrong.</li>
+          <li>The top of the table shows your weakest players by <strong>5-GW projected points</strong>. Click a row to list affordable replacements in the same position (club limit of three included).</li>
+          <li><strong>Net gain</strong> = replacement's projection minus your player's, minus 4 per hit. Over 5 gameweeks, a hit needs a gain above 4 just to break even.</li>
+          <li>Use <strong>⚖️ Compare</strong> on a replacement to send both players to the Compare tab for the full breakdown.</li>
+        </ol>
+        <p><strong>Projected points</strong> are a rule of thumb, not FPL's model: blend of form and points per game, scaled for each fixture's difficulty and home/away, two games in a double, zero in a blank, and reduced for injury doubts. Use them to rank players, not as a forecast.</p>
+        <p><strong>Next-GW score</strong> is the dashboard's usual 0–100 score with Transfer weights and neutral H2H.</p>
+        <p style="margin-top:8px;">Full reference: <span class="guide-link" onclick="switchTab('guide')">📖 Guide tab</span></p>
+      </div>
+    </details>
+
+    <div class="card">
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:14px;">
+        <div style="width:150px;">
+          <label style="margin-top:0;">FPL entry ID</label>
+          <input type="text" id="mt-entry" value="576743" style="padding:6px 8px;">
+        </div>
+        <button class="btn btn-primary" onclick="loadMyTeam(true)">Load my team</button>
+        <button class="btn btn-secondary" onclick="mtSendToXI()" title="Score all 15 for next GW and fill the Starting XI tab">→ Send squad to Starting XI</button>
+        <span id="mt-status" style="font-size:0.75rem;color:#8b949e;padding-bottom:8px;"></span>
+      </div>
+      <div id="mt-head"></div>
+      <div id="mt-pending"></div>
+      <div id="mt-chipsync"></div>
+      <div class="mt-scroll"><div id="mt-squad"></div></div>
+    </div>
+
+    <div class="card" id="mt-repl-card" style="margin-top:20px;display:none;">
+      <h2 id="mt-repl-title">Replacements</h2>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;font-size:0.76rem;color:#8b949e;margin-bottom:10px;">
+        <label style="margin:0;display:flex;align-items:center;gap:6px;"><input type="checkbox" id="mt-fit" checked onchange="renderReplacements()"> Hide doubtful/injured</label>
+        <label style="margin:0;display:flex;align-items:center;gap:6px;">Min minutes % <input type="number" id="mt-minmins" value="50" min="0" max="100" style="width:64px;padding:3px 6px;" onchange="renderReplacements()"></label>
+        <label style="margin:0;display:flex;align-items:center;gap:6px;">Transfers this week <select id="mt-ntr" onchange="renderReplacements()" style="width:auto;padding:3px 6px;"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></label>
+      </div>
+      <div class="mt-scroll"><div id="mt-repl"></div></div>
+    </div>
+  </div>
+
+  <div id="tab-evaluate">
+    <details class="guide-panel">
+      <summary>ℹ️ How this tab works</summary>
+      <div class="guide-body">
+        <p>Scores one player from 0 to 100 for a chosen decision (captain, transfer in, starting XI or bench). The decision type changes which metrics matter most. See the <strong>Weights</strong> tab.</p>
+        <ol>
+          <li><strong>Fixture Lookup</strong> is only needed for a gameweek other than next week. Enter the gameweek, press <strong>Auto Load</strong> and click the player's team.</li>
+          <li><strong>🔎 Find FPL player</strong>: start typing a surname and pick from the list. This fills position, form, xG, xA, xGC, minutes, penalty and set-piece duty, the overperformance check and next week's fixture (FDR, home/away, double or blank) from FPL.</li>
+          <li>Choose the <strong>decision type</strong>, then press <strong>🔍 Auto H2H</strong> in Fixture Lookup to fill the H2H slider.</li>
+          <li>Check the green panel under the search for injury news and small samples. Tick <strong>Rotation risk</strong> or <strong>Returning from injury</strong> yourself if they apply. FPL doesn't supply those.</li>
+          <li>Tick any <strong>modifiers</strong> that apply (penalty taker, rotation risk, double gameweek and so on).</li>
+          <li>Read the score and the breakdown bars, then <strong>+ Add to Shortlist</strong> or <strong>→ Send to Starting XI</strong>.</li>
+        </ol>
+        <p><strong>Score bands:</strong> 85+ Elite · 70–84 Strong · 55–69 Decent · 40–54 Average · under 40 Weak.</p>
+        <p><strong>GKP/DEF:</strong> the xG slider is swapped for <strong>xGC per 90</strong> (goals conceded expected, lower is better).</p>
+        <p><strong>Shortlist is not saved.</strong> It clears if the page is refreshed. Send players to the XI or note them before closing.</p>
+        <p style="margin-top:8px;">Full reference: <span class="guide-link" onclick="switchTab('guide')">📖 Guide tab</span></p>
+      </div>
+    </details>
+    <div class="grid-2">
+      <!-- LEFT: INPUT PANEL -->
+      <div class="card">
+        <h2>Player Input</h2>
+
+        <!-- FIXTURE HELPER -->
+        <details class="fixture-panel" id="fixture-details">
+          <summary>🏟️ Fixture Lookup</summary>
+          <div style="margin-top:12px;">
+            <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:10px;">
+              <div style="flex:1;">
+                <label style="margin-top:0;">Gameweek</label>
+                <input type="number" id="gw-input" value="1" min="1" max="38" style="padding:6px 8px;font-size:0.85rem;">
+              </div>
+              <button class="btn btn-primary" onclick="loadFixtures()" style="white-space:nowrap;padding:8px 16px;">Auto Load</button>
+              <button class="btn btn-secondary" onclick="togglePasteMode()" style="white-space:nowrap;padding:8px 14px;" title="Enter fixture manually">✏️ Manual</button>
+            </div>
+            <div style="font-size:0.7rem;color:#30363d;margin-bottom:6px;">
+              FPL: <a id="fpl-api-link" href="https://fantasy.premierleague.com/api/fixtures/?event=1" target="_blank" style="color:#30363d;text-decoration:none;">https://fantasy.premierleague.com/api/fixtures/?event=1</a>
+            </div>
+
+            <!-- MANUAL ENTRY MODE -->
+            <div id="paste-mode" style="display:none;background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:12px;margin-bottom:10px;">
+              <div style="font-size:0.72rem;color:#8b949e;margin-bottom:10px;">
+                FPL API is live for 2026/27. Use Auto Load for live fixtures, or enter manually below.
+              </div>
+              <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center;margin-bottom:8px;">
+                <div>
+                  <label style="margin-top:0;font-size:0.72rem;">Home Team</label>
+                  <select id="manual-home" style="font-size:0.8rem;padding:5px 6px;"></select>
+                </div>
+                <div style="text-align:center;color:#8b949e;font-weight:700;padding-top:18px;">vs</div>
+                <div>
+                  <label style="margin-top:0;font-size:0.72rem;">Away Team</label>
+                  <select id="manual-away" style="font-size:0.8rem;padding:5px 6px;"></select>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;">
+                <div>
+                  <label style="margin-top:0;font-size:0.72rem;">Home FDR</label>
+                  <select id="manual-hfdr" style="font-size:0.8rem;padding:5px 6px;">
+                    <option value="2">2 — Very Easy</option>
+                    <option value="3" selected>3 — Moderate</option>
+                    <option value="4">4 — Difficult</option>
+                    <option value="5">5 — Very Hard</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="margin-top:0;font-size:0.72rem;">Away FDR</label>
+                  <select id="manual-afdr" style="font-size:0.8rem;padding:5px 6px;">
+                    <option value="2">2 — Very Easy</option>
+                    <option value="3" selected>3 — Moderate</option>
+                    <option value="4">4 — Difficult</option>
+                    <option value="5">5 — Very Hard</option>
+                  </select>
+                </div>
+              </div>
+              <div style="margin-bottom:10px;">
+                <label style="margin-top:0;font-size:0.72rem;">Kickoff (optional)</label>
+                <input type="text" id="manual-ko" placeholder="e.g. Thu 21 Aug 20:00" style="font-size:0.8rem;padding:5px 8px;">
+              </div>
+              <button class="btn btn-primary" onclick="addManualFixture()" style="width:100%;">Add Fixture</button>
+            </div>
+
+            <div id="fixture-status" style="font-size:0.75rem;color:#8b949e;min-height:18px;"></div>
+            <div id="fixture-list" style="margin-top:8px;"></div>
+            <div style="margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <button id="h2h-auto-btn" onclick="autoH2H()"
+                style="display:none;background:#1a1e28;border:1px solid #3a4f6e;color:#88bbff;border-radius:6px;padding:6px 14px;font-size:0.78rem;font-weight:700;cursor:pointer;"
+                title="Fetch H2H record from football-data.org and auto-set the slider">
+                🔍 Auto H2H
+              </button>
+              <span id="h2h-btn-note" style="font-size:0.7rem;color:#555;"></span>
+            </div>
+            <div id="h2h-result-panel" style="margin-top:8px;font-size:0.75rem;"></div>
+          </div>
+          <div style="margin-top:14px;">
+            <div style="font-size:0.72rem;color:#8b949e;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">FDR Quick Reference — click to set</div>
+            <div class="fdr-pills">
+              <span class="fdr-pill fdr-2" onclick="setFDR(2)">FDR 2 — Very Easy</span>
+              <span class="fdr-pill fdr-3" onclick="setFDR(3)">FDR 3 — Moderate</span>
+              <span class="fdr-pill fdr-4" onclick="setFDR(4)">FDR 4 — Difficult</span>
+              <span class="fdr-pill fdr-5" onclick="setFDR(5)">FDR 5 — Very Hard</span>
+            </div>
+          </div>
+        </details>
+
+        <div class="fpl-search">
+          <label>🔎 Find FPL player <span><span class="pl-status" id="pl-status-eval">fills everything below</span></span></label>
+          <input type="text" list="fpl-player-list" id="p1search" placeholder="Start typing a surname…" autocomplete="off"
+                 onfocus="ensurePlayers()" oninput="onPlayerSearch(this,'eval')">
+          <div class="pl-info" id="pl-info-eval"></div>
+        </div>
+        <datalist id="fpl-player-list"></datalist>
+
+        <label>Player Name</label>
+        <input type="text" id="p1name" placeholder="e.g. Palmer" value="">
+
+        <label>Position</label>
+        <select id="p1pos" onchange="updatePositionMode(1)">
+          <option value="mid">MID</option>
+          <option value="fwd">FWD</option>
+          <option value="def">DEF</option>
+          <option value="gkp">GKP</option>
+        </select>
+
+        <label>Decision Type</label>
+        <select id="p1decision" onchange="renderBreakdown()">
+          <option value="captain">Captain</option>
+          <option value="transfer">Transfer In</option>
+          <option value="starting_xi">Starting XI</option>
+          <option value="bench">Bench</option>
+        </select>
+
+        <hr class="divider">
+        <h2>Metrics</h2>
+
+        <div class="metric-row"><label>Form (pts/GW, 0–12)</label><input type="range" id="m_form" min="0" max="12" step="0.1" value="6" oninput="syncVal(this,'v_form');renderBreakdown()"><span class="metric-val" id="v_form">6.0</span></div>
+        <div id="xg-row" class="metric-row"><label>xG per 90 (0–4.0)</label><input type="range" id="m_xg" min="0" max="4" step="0.01" value="0.3" oninput="syncVal(this,'v_xg');renderBreakdown()"><span class="metric-val" id="v_xg">0.30</span></div>
+        <div id="xa-row" class="metric-row"><label>xA per 90 (0–2.0)</label><input type="range" id="m_xa" min="0" max="2" step="0.01" value="0.15" oninput="syncVal(this,'v_xa');renderBreakdown()"><span class="metric-val" id="v_xa">0.15</span></div>
+        <div id="xgc-row" class="metric-row" style="display:none"><label>xGC per 90 (0–3.0)</label><input type="range" id="m_xgc" min="0" max="3" step="0.01" value="1.0" oninput="syncVal(this,'v_xgc');renderBreakdown()"><span class="metric-val" id="v_xgc">1.00</span></div>
+        <div class="metric-row"><label>FDR (2=Easy, 5=Hard)</label><input type="range" id="m_fdr" min="2" max="5" step="1" value="3" oninput="syncVal(this,'v_fdr');renderBreakdown()"><span class="metric-val" id="v_fdr">3</span></div>
+        <div class="metric-row"><label>Minutes % (0–100)</label><input type="range" id="m_mins" min="0" max="100" step="1" value="80" oninput="syncVal(this,'v_mins');renderBreakdown()"><span class="metric-val" id="v_mins">80</span></div>
+        <div class="metric-row"><label>H2H score (0–1)</label><input type="range" id="m_h2h" min="0" max="1" step="0.05" value="0.5" oninput="syncVal(this,'v_h2h');renderBreakdown()"><span class="metric-val" id="v_h2h">0.50</span></div>
+        <div class="metric-row"><label>Mgr H2H win rate (0–1)</label><input type="range" id="m_mgr" min="0" max="1" step="0.05" value="0.33" oninput="syncVal(this,'v_mgr');renderBreakdown()"><span class="metric-val" id="v_mgr">0.33</span></div>
+
+        <hr class="divider">
+        <h2>Modifiers</h2>
+
+        <label>Home or Away?</label>
+        <select id="m_venue" onchange="renderBreakdown()">
+          <option value="home">Home</option>
+          <option value="away">Away</option>
+        </select>
+
+        <div class="toggle-row"><input type="checkbox" id="m_dgw" onchange="renderBreakdown()"><label for="m_dgw">Double Gameweek (×1.8 fixture multiplier)</label></div>
+        <div class="toggle-row"><input type="checkbox" id="m_bgw" onchange="renderBreakdown()"><label for="m_bgw">Blank Gameweek (no fixture)</label></div>
+        <div class="toggle-row"><input type="checkbox" id="m_pen" onchange="renderBreakdown()"><label for="m_pen">Penalty taker (+0.25 xG/90)</label></div>
+        <div class="toggle-row"><input type="checkbox" id="m_spc" onchange="renderBreakdown()"><label for="m_spc">Set piece specialist (+0.08 xA/90)</label></div>
+        <div class="toggle-row"><input type="checkbox" id="m_rot" onchange="renderBreakdown()"><label for="m_rot">Rotation risk (UCL/EL midweek)</label></div>
+        <div class="toggle-row"><input type="checkbox" id="m_ret" onchange="renderBreakdown()"><label for="m_ret">Returning from injury (minute cap)</label></div>
+
+        <div class="metric-row" style="margin-top:12px;"><label>Goals scored vs xG total (overperf check)</label><input type="range" id="m_ops" min="0.1" max="2" step="0.01" value="1.0" oninput="syncVal(this,'v_ops');renderBreakdown()"><span class="metric-val" id="v_ops">1.00</span></div>
+        <small style="color:#8b949e;font-size:0.72rem;">Formula: Goals scored ÷ cumulative xG total &nbsp;·&nbsp; e.g. 8 goals ÷ 5.2 xG = 1.54 &nbsp;·&nbsp; >1.5 triggers penalty &nbsp;·&nbsp; Source: FBref / Understat &nbsp;·&nbsp; Leave at 1.00 until GW6+</small>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="renderBreakdown()">Calculate Score</button>
+          <button class="btn btn-secondary" onclick="resetForm(1)">Reset</button>
+        </div>
+      </div>
+
+      <!-- RIGHT: OUTPUT PANEL -->
+      <div>
+        <div class="card" style="margin-bottom:20px;">
+          <h2>Score</h2>
+          <div style="display:flex;align-items:flex-end;gap:16px;">
+            <div>
+              <div class="score-big" id="out-score" style="color:#00ff87;">—</div>
+              <div class="score-label">Composite (0–100)</div>
+              <div class="score-grade" id="out-grade">Enter metrics to evaluate</div>
+            </div>
+            <div style="flex:1;text-align:right;">
+              <div id="out-ownership" style="font-size:0.75rem;color:#8b949e;"></div>
+            </div>
+          </div>
+          <div class="flags" id="out-flags"></div>
+        </div>
+
+        <div class="card">
+          <h2>Score Breakdown</h2>
+          <div id="breakdown-bars"></div>
+          <div class="chart-container">
+            <canvas id="radarChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SAVED PLAYERS TABLE -->
+    <div class="card" style="margin-top:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <h2>Session Shortlist</h2>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-primary" onclick="sendAllToXI()" style="font-size:0.75rem;padding:6px 12px;">→ Send All to XI</button>
+          <button class="btn btn-secondary" onclick="clearShortlist()" style="font-size:0.75rem;padding:6px 12px;">Clear All</button>
+        </div>
+      </div>
+      <div id="shortlist-notice" class="notice" style="margin-top:8px;">
+        <strong>No players added yet.</strong> Calculate a score then press "Add to Shortlist" to compare candidates.
+      </div>
+      <table id="shortlist-table" style="display:none;margin-top:8px;">
+        <thead>
+          <tr>
+            <th>#</th><th>Player</th><th>Pos</th><th>Decision</th><th>Score</th><th>Top Factor</th><th>Flags</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="shortlist-body"></tbody>
+      </table>
+      <div class="btn-row" id="add-btn-row" style="display:none;">
+        <button class="btn btn-primary" onclick="addToShortlist()">+ Add to Shortlist</button>
+        <button class="btn btn-secondary" onclick="addCurrentToXI()">→ Send to Starting XI</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TAB: COMPARE / TRANSFER ===== -->
+  <div id="tab-compare" style="display:none;">
+    <details class="guide-panel">
+      <summary>ℹ️ How this tab works</summary>
+      <div class="guide-body">
+        <p>Head-to-head between the player you'd sell (<strong>A, red</strong>) and the player you'd buy (<strong>B, green</strong>). Both are scored with the same engine as the Evaluate tab.</p>
+        <ol>
+          <li>Use <strong>🔎 Find FPL player</strong> at the top of each column to fill it from FPL. FDR here is the <strong>next gameweek only</strong>. H2H stays at 0.50 unless you enter it.</li>
+          <li>Set <strong>Free transfers available</strong>. Choosing <code>0</code> applies the −4 hit.</li>
+          <li>Press <strong>Evaluate Transfer</strong>.</li>
+        </ol>
+        <p><strong>How the verdict is decided:</strong> score of B minus score of A, minus 4 if it costs a hit.</p>
+        <ul>
+          <li><strong>+15 or more</strong>: ✅ Strong Transfer</li>
+          <li><strong>+5 to +14</strong>: ✅ Recommended</li>
+          <li><strong>0 to +4</strong>: ⚠️ Marginal. Only do it for a reason the numbers don't capture (injury, price drop, upcoming blank).</li>
+          <li><strong>Below 0</strong>: ❌ Not Recommended</li>
+          <li>Player B ticked as <strong>BGW</strong>: always ❌ Do Not Transfer</li>
+        </ul>
+        <p><strong>Caution:</strong> the −4 is an approximation. Dashboard score points are not FPL points, so treat a marginal verdict with a hit as "probably not".</p>
+        <p><strong>Goals/xG ratio</strong> and <strong>xG overperf check</strong> matter for attackers only. Leave them at <code>1.0</code> for GKP and DEF.</p>
+        <p style="margin-top:8px;">Full reference: <span class="guide-link" onclick="switchTab('guide')">📖 Guide tab</span></p>
+      </div>
+    </details>
+    <div class="grid-2" style="align-items:start;">
+
+      <!-- PLAYER A -->
+      <div class="card">
+        <h2 style="color:#ff6b6b;">▼ Player Out (A)</h2>
+        <div class="fpl-search" style="margin-top:6px;">
+          <label>🔎 Find FPL player <span class="pl-status" id="pl-status-a"></span></label>
+          <input type="text" list="fpl-player-list" id="casearch" placeholder="Start typing a surname…" autocomplete="off"
+                 onfocus="ensurePlayers()" oninput="onPlayerSearch(this,'a')">
+          <div class="pl-info" id="pl-info-a"></div>
+        </div>
+        <label>Name</label><input type="text" id="c_a_name" placeholder="e.g. Szoboszlai" value="">
+        <label>Position</label>
+        <select id="c_a_pos"><option value="mid">MID</option><option value="fwd">FWD</option><option value="def">DEF</option><option value="gkp">GKP</option></select>
+        <label>Form</label><input type="number" id="ca_form" value="5" step="0.1" min="0" max="12">
+        <label>xG/90</label><input type="number" id="ca_xg" value="0.15" step="0.01" min="0" max="1">
+        <label>xA/90</label><input type="number" id="ca_xa" value="0.10" step="0.01" min="0" max="0.6">
+        <label>FDR (next GW)</label><input type="number" id="ca_fdr" value="3" step="1" min="2" max="5">
+        <label>Minutes %</label><input type="number" id="ca_mins" value="70" step="1" min="0" max="100">
+        <label>H2H score</label><input type="number" id="ca_h2h" value="0.5" step="0.05" min="0" max="1">
+        <label>Mgr H2H</label><input type="number" id="ca_mgr" value="0.33" step="0.05" min="0" max="1">
+        <label title="Expected goals conceded per 90. Only used for GKP and DEF. Lower is better.">xGC/90 (GKP/DEF only)</label><input type="number" id="ca_xgc" value="1.0" step="0.01" min="0" max="3">
+        <label title="Goals scored ÷ season total xG. 1.0 = in line with xG. Above 1.5 deducts points. Leave at 1.0 for GKP/DEF.">Goals ÷ xG (overperf check)</label><input type="number" id="ca_ops" value="1.0" step="0.01" min="0.1" max="3">
+        <div class="toggle-row" style="margin-top:10px;"><input type="checkbox" id="ca_home"><label for="ca_home">Home fixture</label></div>
+        <div class="toggle-row"><input type="checkbox" id="ca_dgw"><label for="ca_dgw">DGW</label></div>
+        <div class="toggle-row"><input type="checkbox" id="ca_bgw"><label for="ca_bgw">BGW (no fixture)</label></div>
+        <div class="toggle-row"><input type="checkbox" id="ca_rot"><label for="ca_rot">Rotation risk</label></div>
+        <div class="toggle-row"><input type="checkbox" id="ca_pen"><label for="ca_pen">Penalty taker</label></div>
+        <div class="toggle-row"><input type="checkbox" id="ca_spc"><label for="ca_spc">Set piece specialist</label></div>
+      </div>
+
+      <!-- PLAYER B -->
+      <div class="card">
+        <h2 style="color:#00ff87;">▲ Player In (B)</h2>
+        <div class="fpl-search" style="margin-top:6px;">
+          <label>🔎 Find FPL player <span class="pl-status" id="pl-status-b"></span></label>
+          <input type="text" list="fpl-player-list" id="cbsearch" placeholder="Start typing a surname…" autocomplete="off"
+                 onfocus="ensurePlayers()" oninput="onPlayerSearch(this,'b')">
+          <div class="pl-info" id="pl-info-b"></div>
+        </div>
+        <label>Name</label><input type="text" id="c_b_name" placeholder="e.g. Palmer" value="">
+        <label>Position</label>
+        <select id="c_b_pos"><option value="mid">MID</option><option value="fwd">FWD</option><option value="def">DEF</option><option value="gkp">GKP</option></select>
+        <label>Form</label><input type="number" id="cb_form" value="8" step="0.1" min="0" max="12">
+        <label>xG/90</label><input type="number" id="cb_xg" value="0.35" step="0.01" min="0" max="1">
+        <label>xA/90</label><input type="number" id="cb_xa" value="0.20" step="0.01" min="0" max="0.6">
+        <label>FDR (next GW)</label><input type="number" id="cb_fdr" value="2" step="1" min="2" max="5">
+        <label>Minutes %</label><input type="number" id="cb_mins" value="90" step="1" min="0" max="100">
+        <label>H2H score</label><input type="number" id="cb_h2h" value="0.5" step="0.05" min="0" max="1">
+        <label>Mgr H2H</label><input type="number" id="cb_mgr" value="0.33" step="0.05" min="0" max="1">
+        <label title="Expected goals conceded per 90. Only used for GKP and DEF. Lower is better.">xGC/90 (GKP/DEF only)</label><input type="number" id="cb_xgc" value="1.0" step="0.01" min="0" max="3">
+        <label title="Goals scored ÷ season total xG. 1.0 = in line with xG. Above 1.5 deducts points. Leave at 1.0 for GKP/DEF.">Goals ÷ xG (overperf check)</label><input type="number" id="cb_ops" value="1.0" step="0.01" min="0.1" max="3">
+        <div class="toggle-row" style="margin-top:10px;"><input type="checkbox" id="cb_home" checked><label for="cb_home">Home fixture</label></div>
+        <div class="toggle-row"><input type="checkbox" id="cb_dgw"><label for="cb_dgw">DGW</label></div>
+        <div class="toggle-row"><input type="checkbox" id="cb_bgw"><label for="cb_bgw">BGW (no fixture)</label></div>
+        <div class="toggle-row"><input type="checkbox" id="cb_rot"><label for="cb_rot">Rotation risk</label></div>
+        <div class="toggle-row"><input type="checkbox" id="cb_pen"><label for="cb_pen">Penalty taker</label></div>
+        <div class="toggle-row"><input type="checkbox" id="cb_spc"><label for="cb_spc">Set piece specialist</label></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <h2>Transfer Settings</h2>
+      <div class="grid-3">
+        <div>
+          <label>Decision Type</label>
+          <select id="c_decision">
+            <option value="transfer">Transfer</option>
+            <option value="captain">Captain</option>
+            <option value="starting_xi">Starting XI</option>
+            <option value="bench">Bench</option>
+          </select>
+        </div>
+        <div>
+          <label>Free transfers available</label>
+          <select id="c_ft">
+            <option value="2">2 (no hit)</option>
+            <option value="1" selected>1 (no hit)</option>
+            <option value="0">0 (−4pt hit)</option>
+          </select>
+        </div>
+        <div>
+          <label>Ownership context</label>
+          <select id="c_own">
+            <option value="template">Template move</option>
+            <option value="differential">Differential</option>
+            <option value="green">Green arrow chase</option>
+          </select>
+        </div>
+      </div>
+      <div class="btn-row"><button class="btn btn-primary" onclick="calcTransfer()">Evaluate Transfer</button></div>
+
+      <div id="transfer-result" style="display:none;" class="transfer-result">
+        <div class="grid-2">
+          <div>
+            <div style="font-size:0.75rem;color:#8b949e;margin-bottom:8px;">SCORE COMPARISON</div>
+            <div style="display:flex;gap:16px;align-items:center;">
+              <div style="text-align:center;"><div style="font-size:2rem;font-weight:900;color:#ff6b6b;" id="tr-score-a">—</div><div style="font-size:0.72rem;color:#8b949e;" id="tr-name-a">Player Out</div></div>
+              <div class="vs-divider">→</div>
+              <div style="text-align:center;"><div style="font-size:2rem;font-weight:900;color:#00ff87;" id="tr-score-b">—</div><div style="font-size:0.72rem;color:#8b949e;" id="tr-name-b">Player In</div></div>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:10px;">
+              <button class="btn btn-secondary" style="font-size:0.72rem;padding:4px 10px;" onclick="addCompareToShortlist('b')">+ Shortlist Player In</button>
+              <button class="btn btn-secondary" style="font-size:0.72rem;padding:4px 10px;" onclick="addCompareToXI('b')">→ XI (Player In)</button>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:0.75rem;color:#8b949e;margin-bottom:8px;">VERDICT</div>
+            <div class="transfer-verdict" id="tr-verdict">—</div>
+            <div id="tr-reasoning" style="font-size:0.8rem;color:#8b949e;margin-top:8px;line-height:1.5;"></div>
+          </div>
+        </div>
+        <div class="chart-container" style="height:180px;margin-top:16px;"><canvas id="compareChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TAB: STARTING XI ===== -->
+  <div id="tab-xi" style="display:none;">
+    <details class="guide-panel">
+      <summary>ℹ️ How this tab works</summary>
+      <div class="guide-body">
+        <p>Picks your best 11 from up to 15 players using FPL formation rules: <strong>1 GKP, 3–5 DEF, 2–5 MID, 1–3 FWD</strong>.</p>
+        <ol>
+          <li>Score each squad player on the Evaluate tab with decision type <strong>Starting XI</strong>.</li>
+          <li>Use <strong>→ Send All to XI</strong> on the shortlist, or add players by hand here (name, position, score).</li>
+          <li>Tick <strong>Doubt</strong> for anyone flagged injured or uncertain. They're shown with a warning in the result.</li>
+          <li>Press <strong>Build Optimal XI</strong>. It fills the minimum per position with the highest scores, then the remaining spots with the best players left. The rest form the bench.</li>
+        </ol>
+        <p><strong>Save your squad:</strong> use <strong>⬇ Export</strong> to download it as a file and <strong>⬆ Import</strong> to reload it next week. The list is otherwise lost on refresh.</p>
+        <p style="margin-top:8px;">Full reference: <span class="guide-link" onclick="switchTab('guide')">📖 Guide tab</span></p>
+      </div>
+    </details>
+    <div class="grid-2">
+      <div class="card">
+        <h2>Add Squad Player</h2>
+        <label>Name</label><input type="text" id="xi_name" placeholder="Player name">
+        <label>Position</label>
+        <select id="xi_pos">
+          <option value="gkp">GKP</option>
+          <option value="def">DEF</option>
+          <option value="mid">MID</option>
+          <option value="fwd">FWD</option>
+        </select>
+        <label>Starting XI Score (0–100)</label>
+        <input type="number" id="xi_score" value="65" min="0" max="100">
+        <div class="toggle-row" style="margin-top:8px;"><input type="checkbox" id="xi_doubt"><label for="xi_doubt">Doubt / injury flag</label></div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="addXIPlayer()">Add Player</button>
+          <button class="btn btn-secondary" onclick="clearXI()">Clear Squad</button>
+          <button class="btn btn-secondary" onclick="exportSquad()" title="Download squad as JSON">⬇ Export</button>
+          <label class="btn btn-secondary" style="cursor:pointer;" title="Load squad from JSON">⬆ Import<input type="file" accept=".json" onchange="importSquad(event)" style="display:none;"></label>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Squad</h2>
+        <table id="xi-squad-table">
+          <thead><tr><th>Player</th><th>Pos</th><th>Score</th><th>Status</th><th></th></tr></thead>
+          <tbody id="xi-squad-body"></tbody>
+        </table>
+        <div class="btn-row" style="margin-top:16px;">
+          <button class="btn btn-primary" onclick="buildXI()">Build Optimal XI</button>
+        </div>
+      </div>
+    </div>
+    <div id="xi-result" style="display:none;" class="card" style="margin-top:20px;">
+      <h2>Recommended Starting XI</h2>
+      <div id="xi-output"></div>
+    </div>
+  </div>
+
+  <!-- ===== TAB: CHIP PLANNER ===== -->
+  <div id="tab-chips" style="display:none;">
+    <details class="guide-panel">
+      <summary>ℹ️ How this tab works</summary>
+      <div class="guide-body">
+        <p>Tracks which of your eight 2026/27 chips you've used. It's saved in this browser, so it stays between visits.</p>
+        <ol>
+          <li>Set <strong>Gameweek played</strong> to the gameweek you used the chip.</li>
+          <li>Press <strong>Mark used</strong> on that chip. Press <strong>Undo</strong> if you made a mistake.</li>
+        </ol>
+        <p>The banner counts down to the Set 1 deadline and tells you how many first-half chips are still unused, because they're lost if not played by then.</p>
+        <p style="margin-top:8px;">Full reference: <span class="guide-link" onclick="switchTab('guide')">📖 Guide tab</span></p>
+      </div>
+    </details>
+
+    <div class="grid-2">
+      <div class="card">
+        <h2>Your Chips — 2026/27</h2>
+        <div id="chip-deadline" class="deadline-banner closed"></div>
+        <div style="display:flex;align-items:flex-end;gap:10px;margin-top:10px;">
+          <div style="width:140px;">
+            <label style="margin-top:0;">Gameweek played</label>
+            <input type="number" id="chip-gw" min="1" max="38" value="1" style="padding:6px 8px;">
+          </div>
+          <div style="font-size:0.72rem;color:#8b949e;padding-bottom:8px;">Recorded against a chip when you press <strong style="color:#e6edf3;">Mark used</strong>.</div>
+        </div>
+        <div class="chip-half-title">Set 1 — first half <span>play before GW19 deadline</span></div>
+        <div class="chip-grid" id="chip-grid-1"></div>
+        <div class="chip-half-title">Set 2 — second half <span>refreshed after GW19</span></div>
+        <div class="chip-grid" id="chip-grid-2"></div>
+      </div>
+
+      <div class="card">
+        <h2>2026/27 Chip Rules</h2>
+        <ul style="font-size:0.8rem;color:#a8b3c4;line-height:1.7;padding-left:18px;">
+          <li><strong style="color:#e6edf3;">Two of every chip</strong> (Wildcard, Free Hit, Triple Captain, Bench Boost), one set per half of the season. Eight in total.</li>
+          <li><strong style="color:#e6edf3;">Set 1 must be played before the GW19 deadline:</strong> 13:30 GMT, Saturday 2 January. Unused Set 1 chips <strong style="color:#ff6b6b;">do not carry over</strong>.</li>
+          <li><strong style="color:#e6edf3;">One chip per gameweek.</strong></li>
+          <li><strong style="color:#e6edf3;">Free Hit</strong> can't be played in GW1. If Free Hit 1 is used in GW19, Free Hit 2 can't be used in GW20.</li>
+          <li><strong style="color:#e6edf3;">Free transfers:</strong> up to five can be banked.</li>
+        </ul>
+        <p style="font-size:0.7rem;color:#555;margin-top:8px;">Source: premierleague.com, "What's happening with FPL chips in 2026/27" and "All you need to know about changes to FPL for 2026/27" (both July 2026). Checked 19 Nov 2026.</p>
+        <hr class="divider">
+        <h2>When to Play Each Chip</h2>
+        <div class="breakdown-item">
+          <div style="color:#00ff87;font-weight:700;font-size:0.85rem;">🃏 Wildcard</div>
+          <p style="font-size:0.8rem;color:#8b949e;margin-top:6px;line-height:1.5;">Unlimited permanent transfers for one gameweek. Use it when three or more players need replacing, or ahead of a fixture run your squad is badly placed for. Not for a single-position fix.</p>
+        </div>
+        <hr class="divider">
+        <div class="breakdown-item">
+          <div style="color:#f0a500;font-weight:700;font-size:0.85rem;">⭐ Triple Captain</div>
+          <p style="font-size:0.8rem;color:#8b949e;margin-top:6px;line-height:1.5;">Captain scores ×3 instead of ×2. Best when your captain has two fixtures (double gameweek) or an easy home game. Look for a <strong style="color:#e6edf3;">Captain</strong> score of 80+ on the Evaluate tab first.</p>
+        </div>
+        <hr class="divider">
+        <div class="breakdown-item">
+          <div style="color:#00d4ff;font-weight:700;font-size:0.85rem;">🚀 Bench Boost</div>
+          <p style="font-size:0.8rem;color:#8b949e;margin-top:6px;line-height:1.5;">Your four bench players' points count too. Only worth it when all four have a fixture, ideally a double gameweek. Score your bench with decision type <strong style="color:#e6edf3;">Bench</strong> to check.</p>
+        </div>
+        <hr class="divider">
+        <div class="breakdown-item">
+          <div style="color:#ff6b6b;font-weight:700;font-size:0.85rem;">🔄 Free Hit</div>
+          <p style="font-size:0.8rem;color:#8b949e;margin-top:6px;line-height:1.5;">Unlimited transfers for one gameweek only. Your squad goes back to normal afterwards. Best in a blank gameweek when many of your players have no fixture. Pick that week's XI only, ignoring long-term value.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <h2>Chip Notes</h2>
+      <label style="margin-top:0;">Notes (saved in this browser)</label>
+      <textarea id="chip-notes" oninput="saveChipNotes()" style="width:100%;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;padding:10px;font-size:0.82rem;resize:vertical;min-height:80px;outline:none;" placeholder="e.g. Watch for a double gameweek before GW19 to use Bench Boost 1..."></textarea>
+    </div>
+  </div>
+
+  <!-- ===== TAB: WEIGHTS ===== -->
+  <div id="tab-weights" style="display:none;">
+    <div class="grid-2">
+      <div id="weights-cards"></div>
+      <div class="card">
+        <h2>How Weights Work</h2>
+        <div class="guide-body" style="margin-top:0;">
+          <p>Each decision type has its own set of weights. A weight is how much that metric counts towards the 0–100 score. Each set should <strong>add up to 1.00</strong>, and the total below each card warns you if it doesn't.</p>
+          <p><strong>Example:</strong> Form weight 0.25 and a player on 6.0 form. Form is measured out of 12, so 6.0 is half marks (0.5). 0.5 × 0.25 × 100 = <strong>12.5 points</strong> towards the score.</p>
+          <p><strong>The thinking behind each set:</strong></p>
+          <ul>
+            <li><strong>Captain:</strong> form and xG lead. You want ceiling, not consistency.</li>
+            <li><strong>Transfer:</strong> fixture leads, because buying into bad fixtures costs more than a form difference.</li>
+            <li><strong>Bench:</strong> minutes lead. A bench player only helps if he actually plays.</li>
+            <li><strong>Starting XI:</strong> a balance of form, xG and fixture.</li>
+          </ul>
+          <p><strong>Saving:</strong> press <strong>Save Custom Weights</strong>. They're stored in this browser and reload automatically next time. <strong>Reset to Defaults</strong> wipes your custom set.</p>
+          <p><strong>Mgr H2H</strong> is never filled automatically. Keep its weight at 0.01–0.03 or move it to H2H.</p>
+        </div>
+        <div class="btn-row" style="margin-top:20px;">
+          <button class="btn btn-primary" onclick="saveWeights()">Save Custom Weights</button>
+          <button class="btn btn-secondary" onclick="resetWeights()">Reset to Defaults</button>
+        </div>
+        <div id="weight-save-msg" style="font-size:0.78rem;color:#00ff87;margin-top:8px;display:none;">✓ Weights saved and active</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TAB: GUIDE ===== -->
+  <div id="tab-guide" style="display:none;">
+    <div class="guide-toc">
+      <a href="#g-routine">Weekly routine</a>
+      <a href="#g-myteam">My Team</a>
+      <a href="#g-score">How the score works</a>
+      <a href="#g-inputs">Where to find each number</a>
+      <a href="#g-modifiers">Modifiers</a>
+      <a href="#g-transfer">Transfer verdicts</a>
+      <a href="#g-chips">Chips</a>
+      <a href="#g-trouble">Troubleshooting</a>
+      <a href="#g-limits">Known limitations</a>
+    </div>
+
+    <div class="guide-card" id="g-routine">
+      <h2>Weekly Routine</h2>
+      <div class="step-row"><span class="step-num">1</span><div><strong>Wait for scores to be final.</strong> FPL finalises gameweek scores at 09:00 UK time the day after the last match, so check from then.</div></div>
+      <div class="step-row"><span class="step-num">2</span><div><strong>Fixtures load themselves.</strong> Picking a player from 🔎 Find FPL player sets next week's fixture automatically. Use 🏟️ Fixture Lookup only to look further ahead.</div></div>
+      <div class="step-row"><span class="step-num">3</span><div><strong>Score your candidates.</strong> For each player: <strong>🔎 Find FPL player</strong> → pick decision type → <strong>🔍 Auto H2H</strong> → read the injury/news panel → <strong>+ Add to Shortlist</strong>.</div></div>
+      <div class="step-row"><span class="step-num">4</span><div><strong>Check transfers.</strong> 👥 My Team → check free transfers → click a player near the top → pick a replacement → <strong>⚖️ Compare</strong> for the full breakdown. Check FPL's Price Change Predictor before committing.</div></div>
+      <div class="step-row"><span class="step-num">5</span><div><strong>Pick a captain.</strong> Score your top two or three with decision type <strong>Captain</strong>. Highest score wins, unless a flag (rotation, injury return) says otherwise.</div></div>
+      <div class="step-row"><span class="step-num">6</span><div><strong>Set the team.</strong> Starting XI tab → <strong>Build Optimal XI</strong> → copy it into FPL. <strong>⬇ Export</strong> the squad so you can reload it next week.</div></div>
+      <div class="step-row"><span class="step-num">7</span><div><strong>Check chips.</strong> Chip Planner tab: any Set 1 chips left before the GW19 deadline?</div></div>
+    </div>
+
+    <div class="guide-card" id="g-myteam">
+      <h2>My Team: Sell and Buy Lists</h2>
+      <div class="guide-body" style="margin-top:0;">
+        <p>The <strong>👥 My Team</strong> tab loads your squad from FPL (entry 576743 by default) and ranks it by <strong>projected points over the next 5 gameweeks</strong>. The lowest-ranked players are your sell candidates. Click one to list replacements you can afford.</p>
+        <table class="ref-table">
+          <tr><td>Squad</td><td>As at the last deadline. Pending transfers for the coming week aren't public until it starts.</td></tr>
+          <tr><td>Bank</td><td>From FPL, exact.</td></tr>
+          <tr><td>Selling price</td><td>Purchase price plus half of any rise (rounded down), as FPL does. The purchase price is taken from your transfer history, or the player's first price this season if you've had him from the start. Marked <strong>est.</strong> where it couldn't be found.</td></tr>
+          <tr><td>Free transfers</td><td><strong>Estimated</strong>: not public. Correct it in the box if it's wrong.</td></tr>
+          <tr><td>Pending transfers</td><td>Transfers you've already made for the coming week aren't public until the deadline. Record them with <strong>✓ Made it</strong> (or the "Already bought someone else?" box) and the squad, bank and free transfers update. They're saved in this browser and cleared automatically once FPL shows the new squad.</td></tr>
+          <tr><td>Budget</td><td>Selling price + bank. Clubs already at three players are excluded.</td></tr>
+          <tr><td>Projected pts</td><td>For each fixture: (½ form + ½ points-per-game × minutes share) × difficulty factor (FDR 1 ×1.25, 2 ×1.15, 3 ×1.0, 4 ×0.85, 5 ×0.7) × home 1.05 / away 0.95. Doubles count both games, blanks count zero. Next week is scaled by FPL's chance of playing. Injured or suspended players count half for the later weeks.</td></tr>
+          <tr><td>Net gain</td><td>Replacement's 5-GW projection − your player's − 4 for each transfer beyond your free ones.</td></tr>
+        </table>
+        <p style="margin-top:10px;"><strong>This is a rule of thumb</strong> built for ranking, not calibrated against results. Treat a gain of 2–3 points as noise and look for clear gaps.</p>
+      </div>
+    </div>
+
+    <div class="guide-card" id="g-score">
+      <h2>How the Score Works</h2>
+      <div class="guide-body" style="margin-top:0;">
+        <p>Every metric is converted to a value between 0 and 1, multiplied by its weight for the chosen decision type, then multiplied by 100. The results are added up to give the 0–100 score. If the overperformance check is above 1.5, up to 8 points are deducted.</p>
+        <table class="ref-table">
+          <tr><td>Form</td><td>0 to 12 pts/GW scale. 6.0 = 0.5.</td></tr>
+          <tr><td>xG per 90</td><td>0 to 1.0 scale. <strong>Anything above 1.0 counts as full marks</strong> (the slider goes higher, the score doesn't).</td></tr>
+          <tr><td>xA per 90</td><td>0 to 0.6 scale. Above 0.6 counts as full marks.</td></tr>
+          <tr><td>xGC per 90 (GKP/DEF)</td><td>0 to 3.0, reversed: 0 = full marks, 3.0 = zero.</td></tr>
+          <tr><td>FDR</td><td>2 = 1.00 · 3 = 0.75 · 4 = 0.45 · 5 = 0.25, plus 0.08 for a home game. Double gameweek ×1.8. Blank gameweek = 0.</td></tr>
+          <tr><td>Home/Away</td><td>Home = 1.00, Away = 0.35.</td></tr>
+          <tr><td>Minutes %</td><td>0 to 100 scale.</td></tr>
+          <tr><td>H2H, Mgr H2H</td><td>Used as entered (already 0 to 1).</td></tr>
+        </table>
+        <p style="margin-top:10px;"><strong>Score bands:</strong> 85+ Elite 🔥 · 70–84 Strong ✅ · 55–69 Decent 👍 · 40–54 Average ⚠️ · under 40 Weak ❌</p>
+        <p><strong>Reading the breakdown bars:</strong> they're sorted by points contributed. The top bar is the "Top Factor" shown on the shortlist. A score held up almost entirely by Fixture is less reliable than one spread across form and xG.</p>
+      </div>
+    </div>
+
+    <div class="guide-card" id="g-inputs">
+      <h2>Where to Find Each Number</h2>
+      <div class="guide-body" style="margin-top:0;">
+        <p><strong>🔎 Find FPL player fills all of these automatically</strong> except H2H, Mgr H2H, Rotation risk and Returning from injury. Keep this table for checking a figure or entering one by hand.</p>
+        <p>Most numbers are on the player's profile on the FPL site. Click a player's name anywhere in FPL → <strong>History</strong> tab. The table has a <strong>Totals</strong> row and a <strong>Per 90</strong> row. Scroll the table right if a column is hidden.</p>
+        <table class="ref-table">
+          <tr><td>Form</td><td>Shown on the player's FPL profile. FPL's own figure: average points per match over roughly the last month.</td></tr>
+          <tr><td>xG per 90</td><td>History tab → <strong>Per 90</strong> row → xG column.<br><strong>Watch for small samples:</strong> a player with under ~300 minutes can show huge per-90 figures from one or two good games.</td></tr>
+          <tr><td>xA per 90</td><td>History tab → <strong>Per 90</strong> row → xA column.</td></tr>
+          <tr><td>xGC per 90</td><td>History tab → Per 90 row → xGC column (GKP/DEF only). This reflects the team's defence as well as the player.</td></tr>
+          <tr><td>FDR</td><td>Set automatically when you click a team in Fixture Lookup. Otherwise use the FDR colour on the FPL fixtures page.</td></tr>
+          <tr><td>Minutes %</td><td>Total minutes (Totals row, MP) ÷ (gameweeks played × 90) × 100. Example: 720 minutes after 10 gameweeks = 720 ÷ 900 = 80. Auto-fill uses every finished gameweek, so a player signed mid-season will look low.</td></tr>
+          <tr><td>H2H score</td><td>Press <strong>🔍 Auto H2H</strong> after clicking a team in Fixture Lookup. It's the selected team's win rate at that ground over recent seasons. 0.50 = no data or even.</td></tr>
+          <tr><td>Mgr H2H</td><td>No automatic source. Leave at 0.33 unless you know the managers' record.</td></tr>
+          <tr><td>Goals ÷ xG<br>(overperf check)</td><td>Totals row: <strong>GS ÷ xG</strong>. Use the <strong>season total</strong> xG, not the Per 90 figure. Example: 3 goals ÷ 1.7 xG = 1.76.<br>Leave at 1.00 for GKP and DEF, and for anyone with very few shots.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="guide-card" id="g-modifiers">
+      <h2>Modifiers</h2>
+      <div class="guide-body" style="margin-top:0;">
+        <table class="ref-table">
+          <tr><td>Double Gameweek</td><td>Fixture value ×1.8 (capped at full marks).</td></tr>
+          <tr><td>Blank Gameweek</td><td>Fixture value = 0. On the Compare tab, an incoming BGW player is always "Do Not Transfer".</td></tr>
+          <tr><td>Penalty taker</td><td>Adds 0.25 to xG/90 before scoring.</td></tr>
+          <tr><td>Set piece specialist</td><td>Adds 0.08 to xA/90 before scoring.</td></tr>
+          <tr><td>Rotation risk</td><td>Minutes value ×0.75. Use when there's a midweek European game or a manager hint about rotation.</td></tr>
+          <tr><td>Returning from injury</td><td>Minutes value ×0.65.</td></tr>
+          <tr><td>Overperf check</td><td>Above 1.5 deducts points: (ratio − 1.5) × 16, up to 8 points. Example: 1.76 → about 4 points off.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="guide-card" id="g-transfer">
+      <h2>Transfer Verdicts</h2>
+      <div class="guide-body" style="margin-top:0;">
+        <p><strong>Net gain</strong> = Player B score − Player A score − 4 (only if free transfers = 0).</p>
+        <table class="ref-table">
+          <tr><td>✅ Strong Transfer</td><td>Net gain +15 or more</td></tr>
+          <tr><td>✅ Recommended</td><td>+5 to +14</td></tr>
+          <tr><td>⚠️ Marginal</td><td>0 to +4. Only for reasons outside the numbers.</td></tr>
+          <tr><td>❌ Not Recommended</td><td>Below 0</td></tr>
+          <tr><td>❌ Do Not Transfer</td><td>Player B has a blank gameweek</td></tr>
+        </table>
+        <p style="margin-top:10px;"><strong>Not yet considered:</strong> price and your bank, fixtures beyond next week, and whether the player you're selling is the weakest in your squad. These are planned for the next update.</p>
+      </div>
+    </div>
+
+    <div class="guide-card" id="g-chips">
+      <h2>Chips 2026/27</h2>
+      <div class="guide-body" style="margin-top:0;">
+        <p>Two sets of four chips (Wildcard, Free Hit, Triple Captain, Bench Boost). <strong>Set 1 must be played before the GW19 deadline, 13:30 GMT Saturday 2 January</strong>, and unused Set 1 chips are lost. One chip per gameweek. Free Hit can't be used in GW1, or in GW20 if Free Hit 1 was used in GW19. Track yours on the <span class="guide-link" onclick="switchTab('chips')">🃏 Chip Planner</span> tab.</p>
+      </div>
+    </div>
+
+    <div class="guide-card" id="g-trouble">
+      <h2>Troubleshooting</h2>
+      <div class="guide-body" style="margin-top:0;">
+        <table class="ref-table">
+          <tr><td>Page looks the same after an update</td><td>GitHub is serving an old copy. Add <code>?v=</code> and a new number to the address, e.g. <code>…/FPL_Decision_Dashboard.html?v=13</code>. Check with <strong>Cmd+Option+U</strong> (view source) if unsure.</td></tr>
+          <tr><td>Safari shows old version</td><td>Develop menu → Empty Caches, or open it in a Private window.</td></tr>
+          <tr><td>Find FPL player says "Timed out"</td><td>Click in the box again. The first load each half hour takes 10–20 seconds while it fetches from FPL. If it keeps failing, Code.gs may not be redeployed with the latest version.</td></tr>
+          <tr><td>Auto Load fails</td><td>Wait a few seconds and press it again (the data source can be slow to wake). Otherwise use <strong>✏️ Manual</strong> to enter the fixture yourself.</td></tr>
+          <tr><td>Auto H2H says "Timed out"</td><td>Press it again. The first lookup for a fixture can take 10–20 seconds. After that it's remembered for 24 hours.</td></tr>
+          <tr><td>Auto H2H "team not found"</td><td>A team code mismatch between FPL and football-data.org. Set the H2H slider by hand and let me know which team it was.</td></tr>
+          <tr><td>Weights reset themselves</td><td>Weights are saved per browser. Chrome and Safari keep separate copies, and a Private window saves nothing.</td></tr>
+          <tr><td>Shortlist or XI disappeared</td><td>Neither is saved on refresh yet. Use <strong>⬇ Export</strong> on the Starting XI tab to keep your squad.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="guide-card" id="g-limits">
+      <h2>Known Limitations</h2>
+      <div class="guide-body" style="margin-top:0;">
+        <ul>
+          <li>H2H, Mgr H2H, rotation risk and injury return still need you. Auto-fill doesn't cover them.</li>
+          <li>Auto-filled data can be up to 30 minutes old. Press <strong>↻ refresh</strong> next to the search box for the latest.</li>
+          <li>xG above 1.0 and xA above 0.6 per 90 don't score any higher.</li>
+          <li>Per-90 figures aren't weighted by minutes played, so small samples can inflate a score.</li>
+          <li>Fixture difficulty covers the next gameweek only, not a fixture run.</li>
+          <li>Compare tab still looks at next week only. The My Team tab covers 5 gameweeks, price and budget.</li>
+          <li>The −4 hit is an approximation in score points, not FPL points.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+// ============================================================
+// CONFIG — Apps Script web app URL (proxies FPL API for CORS)
+// ============================================================
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzZB5eQzD5Z8uWE-PMYwsDL-615VnmZ6tUEMM5pcNNpSaN6TAQqYN8juuNasmKyOjnr/exec';
+
+// ============================================================
+// DATA
+// ============================================================
+const DEFAULT_WEIGHTS = {
+  captain:     {form:0.30, xg90:0.25, xa90:0.10, fixture:0.20, home:0.05, h2h:0.05, mgr_h2h:0.03, minutes:0.02},
+  transfer:    {form:0.13, xg90:0.20, xa90:0.10, fixture:0.32, home:0.04, h2h:0.05, mgr_h2h:0.04, minutes:0.12},
+  bench:       {form:0.13, xg90:0.07, xa90:0.04, fixture:0.18, home:0.04, h2h:0.04, mgr_h2h:0.02, minutes:0.48},
+  starting_xi: {form:0.25, xg90:0.20, xa90:0.10, fixture:0.22, home:0.05, h2h:0.05, mgr_h2h:0.03, minutes:0.10},
+};
+
+let WEIGHTS = JSON.parse(JSON.stringify(DEFAULT_WEIGHTS));
+let shortlist = [];
+let xiSquad = [];
+let radarChart = null;
+let compareChart = null;
+let lastScore = null;
+let lastBreakdown = null;
+let lastFlags = [];
+
+const METRIC_LABELS = {
+  form: 'Form', xg90: 'xG/90', xa90: 'xA/90', fixture: 'Fixture',
+  home: 'Home/Away', h2h: 'H2H', mgr_h2h: 'Mgr H2H', minutes: 'Minutes'
+};
+
+const BAR_COLORS = [
+  '#00ff87','#00d4ff','#f0e030','#ff9f40','#ff6b6b','#c77dff','#9ef01a','#48cae4'
+];
+
+// ============================================================
+// UTIL
+// ============================================================
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+function norm(v, lo, hi) { return clamp((v - lo) / (hi - lo), 0, 1); }
+function fdrToScore(fdr, home) {
+  const base = {2:1.0,3:0.75,4:0.45,5:0.25}[fdr] || 0.75;
+  return clamp(base + (home ? 0.08 : 0), 0, 1);
+}
+function syncVal(el, valId) {
+  const v = parseFloat(el.value);
+  const decimals = el.step && el.step.includes('.') ? el.step.split('.')[1].length : 0;
+  document.getElementById(valId).textContent = v.toFixed(decimals);
+}
+function grade(s) {
+  if (s >= 85) return {label:'Elite 🔥', color:'#00ff87'};
+  if (s >= 70) return {label:'Strong ✅', color:'#9ef01a'};
+  if (s >= 55) return {label:'Decent 👍', color:'#f0e030'};
+  if (s >= 40) return {label:'Average ⚠️', color:'#f0a500'};
+  return {label:'Weak ❌', color:'#ff6b6b'};
+}
+
+// ============================================================
+// SCORE CALCULATION
+// ============================================================
+function calcScore(opts) {
+  const w = WEIGHTS[opts.decision] || WEIGHTS.captain;
+
+  // Build normalised metrics
+  let form = norm(opts.form, 0, 12);
+  let xg = norm(opts.xg, 0, 1.0);
+  let xa = norm(opts.xa, 0, 0.6);
+  let mins = norm(opts.mins, 0, 100);
+  let h2h = clamp(opts.h2h, 0, 1);
+  let mgr = clamp(opts.mgr, 0, 1);
+
+  // Modifiers
+  if (opts.pen) xg = clamp(xg + norm(0.25, 0, 1.0), 0, 1);
+  if (opts.spc) xa = clamp(xa + norm(0.08, 0, 0.6), 0, 1);
+  if (opts.rot) mins = clamp(mins * 0.75, 0, 1);
+  if (opts.ret) mins = clamp(mins * 0.65, 0, 1);
+
+  // Fixture score
+  let fixtureScore = opts.bgw ? 0 : fdrToScore(opts.fdr, opts.home);
+  if (opts.dgw && !opts.bgw) fixtureScore = clamp(fixtureScore * 1.8, 0, 1);
+  const homeScore = opts.home ? 1.0 : 0.35;
+
+  // xGC mode for GKP/DEF
+  let xg90_metric = xg;
+  if (opts.pos === 'gkp' || opts.pos === 'def') {
+    xg90_metric = clamp(1 - norm(opts.xgc || 1.0, 0, 3.0), 0, 1);
+  }
+
+  const components = {
+    form, xg90: xg90_metric, xa90: xa, fixture: fixtureScore,
+    home: homeScore, h2h, mgr_h2h: mgr, minutes: mins
+  };
+
+  let raw = 0;
+  const breakdown = {};
+  for (const [k, wv] of Object.entries(w)) {
+    const contrib = wv * (components[k] || 0) * 100;
+    breakdown[k] = { weight: wv, norm: components[k] || 0, contrib };
+    raw += contrib;
+  }
+
+  // Overperformance penalty
+  let penalty = 0;
+  if (opts.ops > 1.5) {
+    penalty = clamp((opts.ops - 1.5) * 0.16, 0, 0.08) * 100;
+  }
+
+  const score = clamp(Math.round(raw - penalty), 0, 100);
+  return { score, breakdown, penalty };
+}
+
+// ============================================================
+// RENDER EVALUATE TAB
+// ============================================================
+function updatePositionMode(p) {
+  const pos = document.getElementById('p1pos').value;
+  const isDefensive = pos === 'gkp' || pos === 'def';
+  document.getElementById('xg-row').style.display = isDefensive ? 'none' : 'flex';
+  document.getElementById('xa-row').style.display = isDefensive ? 'none' : 'flex';
+  document.getElementById('xgc-row').style.display = isDefensive ? 'flex' : 'none';
+  renderBreakdown();
+}
+
+function getFormInputs() {
+  return {
+    name: document.getElementById('p1name').value || 'Player',
+    pos: document.getElementById('p1pos').value,
+    decision: document.getElementById('p1decision').value,
+    form: parseFloat(document.getElementById('m_form').value),
+    xg: parseFloat(document.getElementById('m_xg').value),
+    xa: parseFloat(document.getElementById('m_xa').value),
+    xgc: parseFloat(document.getElementById('m_xgc').value),
+    fdr: parseInt(document.getElementById('m_fdr').value),
+    mins: parseInt(document.getElementById('m_mins').value),
+    h2h: parseFloat(document.getElementById('m_h2h').value),
+    mgr: parseFloat(document.getElementById('m_mgr').value),
+    home: document.getElementById('m_venue').value === 'home',
+    dgw: document.getElementById('m_dgw').checked,
+    bgw: document.getElementById('m_bgw').checked,
+    pen: document.getElementById('m_pen').checked,
+    spc: document.getElementById('m_spc').checked,
+    rot: document.getElementById('m_rot').checked,
+    ret: document.getElementById('m_ret').checked,
+    ops: parseFloat(document.getElementById('m_ops').value),
+  };
+}
+
+function renderBreakdown() {
+  const opts = getFormInputs();
+  const result = calcScore(opts);
+  lastScore = result.score;
+  lastBreakdown = result.breakdown;
+  lastFlags = [];
+
+  // Flags
+  const flags = [];
+  if (opts.bgw) flags.push({t:'BGW — No fixture',c:'flag-alert'});
+  if (opts.dgw) flags.push({t:'DGW — Double fixture',c:'flag-good'});
+  if (opts.pen) flags.push({t:'Penalty taker',c:'flag-good'});
+  if (opts.spc) flags.push({t:'Set piece taker',c:'flag-good'});
+  if (opts.rot) flags.push({t:'Rotation risk',c:'flag-warn'});
+  if (opts.ret) flags.push({t:'Return from injury',c:'flag-warn'});
+  if (result.penalty > 0) flags.push({t:`xG overperf penalty −${result.penalty.toFixed(1)}`,c:'flag-warn'});
+  if (opts.h2h < 0.35) flags.push({t:'Poor H2H history',c:'flag-warn'});
+  if (opts.h2h === 0.5) flags.push({t:'H2H: neutral (no data)',c:'flag-info'});
+  if (opts.mgr === 0.33) flags.push({t:'Mgr H2H: neutral (no data)',c:'flag-info'});
+  if (opts.mins < 40) flags.push({t:'Low minutes risk',c:'flag-alert'});
+  if (opts.fdr >= 4) flags.push({t:'Tough fixture',c:'flag-warn'});
+  lastFlags = flags;
+
+  // Score
+  const g = grade(result.score);
+  document.getElementById('out-score').textContent = result.score;
+  document.getElementById('out-score').style.color = g.color;
+  document.getElementById('out-grade').textContent = g.label;
+  document.getElementById('out-grade').style.color = g.color;
+
+  // Flags
+  const fEl = document.getElementById('out-flags');
+  fEl.innerHTML = flags.map(f => `<span class="flag ${f.c}">${f.t}</span>`).join('');
+
+  // Breakdown bars
+  const bEl = document.getElementById('breakdown-bars');
+  const entries = Object.entries(result.breakdown).sort((a,b) => b[1].contrib - a[1].contrib);
+  bEl.innerHTML = entries.map(([k, d], i) => `
+    <div class="breakdown-item">
+      <div class="breakdown-header">
+        <span class="breakdown-name">${METRIC_LABELS[k]} <span style="color:#30363d;font-size:0.7rem;">(w=${(d.weight*100).toFixed(0)}%)</span></span>
+        <span class="breakdown-val">+${d.contrib.toFixed(1)}</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.min(d.contrib,30)/30*100}%;background:${BAR_COLORS[i%BAR_COLORS.length]};"></div></div>
+    </div>`).join('');
+
+  // Radar
+  renderRadar(result.breakdown, opts.decision);
+  document.getElementById('add-btn-row').style.display = 'flex';
+}
+
+function renderRadar(breakdown, decision) {
+  const labels = Object.values(METRIC_LABELS);
+  const data = Object.keys(METRIC_LABELS).map(k => breakdown[k] ? breakdown[k].norm * 100 : 0);
+
+  if (radarChart) radarChart.destroy();
+  radarChart = new Chart(document.getElementById('radarChart'), {
+    type: 'radar',
+    data: {
+      labels,
+      datasets: [{
+        label: document.getElementById('p1name').value || 'Player',
+        data,
+        backgroundColor: 'rgba(0,255,135,0.1)',
+        borderColor: '#00ff87',
+        pointBackgroundColor: '#00ff87',
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        r: {
+          min: 0, max: 100,
+          ticks: { display: false },
+          grid: { color: '#21262d' },
+          pointLabels: { color: '#8b949e', font: { size: 11 } }
+        }
+      }
+    }
+  });
+}
+
+function resetForm(p) {
+  document.getElementById('p1name').value = '';
+  document.getElementById('m_form').value = 6;
+  document.getElementById('v_form').textContent = '6.0';
+  document.getElementById('m_xg').value = 0.3;
+  document.getElementById('v_xg').textContent = '0.30';
+  document.getElementById('m_xa').value = 0.15;
+  document.getElementById('v_xa').textContent = '0.15';
+  document.getElementById('m_xgc').value = 1.0;
+  document.getElementById('v_xgc').textContent = '1.00';
+  document.getElementById('m_fdr').value = 3;
+  document.getElementById('v_fdr').textContent = '3';
+  document.getElementById('m_mins').value = 80;
+  document.getElementById('v_mins').textContent = '80';
+  document.getElementById('m_h2h').value = 0.5;
+  document.getElementById('v_h2h').textContent = '0.50';
+  document.getElementById('m_mgr').value = 0.33;
+  document.getElementById('v_mgr').textContent = '0.33';
+  document.getElementById('m_ops').value = 1.0;
+  document.getElementById('v_ops').textContent = '1.00';
+  ['m_dgw','m_bgw','m_pen','m_spc','m_rot','m_ret'].forEach(id => document.getElementById(id).checked = false);
+  document.getElementById('m_venue').value = 'home';
+  document.getElementById('out-score').textContent = '—';
+  document.getElementById('out-grade').textContent = 'Enter metrics to evaluate';
+  document.getElementById('out-flags').innerHTML = '';
+  document.getElementById('breakdown-bars').innerHTML = '';
+  if (radarChart) { radarChart.destroy(); radarChart = null; }
+  document.getElementById('add-btn-row').style.display = 'none';
+  lastScore = null;
+}
+
+// ============================================================
+// SHORTLIST
+// ============================================================
+function addToShortlist() {
+  if (lastScore === null) return;
+  const opts = getFormInputs();
+  const topFactor = Object.entries(lastBreakdown).sort((a,b) => b[1].contrib - a[1].contrib)[0];
+  shortlist.push({
+    name: opts.name,
+    pos: opts.pos,
+    decision: opts.decision,
+    score: lastScore,
+    topFactor: METRIC_LABELS[topFactor[0]],
+    flags: lastFlags.map(f => f.t),
+  });
+  renderShortlist();
+}
+
+function renderShortlist() {
+  const tbl = document.getElementById('shortlist-table');
+  const body = document.getElementById('shortlist-body');
+  const notice = document.getElementById('shortlist-notice');
+  if (shortlist.length === 0) { tbl.style.display='none'; notice.style.display='block'; return; }
+  tbl.style.display = 'table';
+  notice.style.display = 'none';
+  const sorted = [...shortlist].sort((a,b) => b.score - a.score);
+  body.innerHTML = sorted.map((p, i) => {
+    const g = grade(p.score);
+    const posClass = {gkp:'pos-gkp',def:'pos-def',mid:'pos-mid',fwd:'pos-fwd'}[p.pos] || '';
+    return `<tr>
+      <td class="rank-num">${i+1}</td>
+      <td><strong>${p.name}</strong></td>
+      <td><span class="pos-badge ${posClass}">${p.pos.toUpperCase()}</span></td>
+      <td style="color:#8b949e;font-size:0.78rem;">${p.decision}</td>
+      <td><span style="color:${g.color};font-weight:800;">${p.score}</span></td>
+      <td style="color:#8b949e;font-size:0.78rem;">${p.topFactor}</td>
+      <td style="font-size:0.72rem;color:#8b949e;">${p.flags.slice(0,2).join(', ')}</td>
+      <td style="display:flex;gap:4px;">
+        <button class="btn btn-primary" style="padding:3px 8px;font-size:0.72rem;" title="Send to Starting XI builder" onclick="addFromShortlistToXI(${shortlist.indexOf(p)})">→ XI</button>
+        <button class="btn btn-danger" style="padding:3px 8px;font-size:0.72rem;" onclick="removeFromShortlist(${shortlist.indexOf(p)})">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function removeFromShortlist(i) { shortlist.splice(i, 1); renderShortlist(); }
+function clearShortlist() { shortlist = []; renderShortlist(); }
+
+// Send every player in the shortlist to the Starting XI builder in one go
+function sendAllToXI() {
+  if (!shortlist.length) { alert('Shortlist is empty — add players first.'); return; }
+  const available = 15 - xiSquad.length;
+  if (available <= 0) { alert('Starting XI builder already has 15 players — remove some first.'); return; }
+  const toAdd = shortlist.slice(0, available);
+  toAdd.forEach(p => xiSquad.push({ name: p.name, pos: p.pos, score: p.score, doubt: false }));
+  if (shortlist.length > available) {
+    alert(`Added ${toAdd.length} players to XI builder (squad limit reached — ${shortlist.length - available} not added).`);
+  }
+  renderXISquad();
+  switchTab('xi');
+}
+
+// Send a shortlist player directly to the Starting XI builder
+function addFromShortlistToXI(i) {
+  const p = shortlist[i];
+  if (!p) return;
+  if (xiSquad.length >= 15) { alert('Starting XI builder already has 15 players — remove one first.'); return; }
+  xiSquad.push({ name: p.name, pos: p.pos, score: p.score, doubt: false });
+  renderXISquad();
+  // Switch to XI tab so user sees the result
+  switchTab('xi');
+}
+
+// Send currently evaluated player straight to XI builder (bypasses shortlist)
+function addCurrentToXI() {
+  if (lastScore === null) return;
+  if (xiSquad.length >= 15) { alert('Starting XI builder already has 15 players — remove one first.'); return; }
+  const opts = getFormInputs();
+  xiSquad.push({ name: opts.name, pos: opts.pos, score: lastScore, doubt: false });
+  renderXISquad();
+  switchTab('xi');
+}
+
+// ============================================================
+// TRANSFER CALCULATOR
+// ============================================================
+function getPlayerFromForm(prefix) {
+  return {
+    name: document.getElementById(`c_${prefix}_name`).value || (prefix==='a'?'Player Out':'Player In'),
+    pos: document.getElementById(`c_${prefix}_pos`).value,
+    decision: document.getElementById('c_decision').value,
+    form: parseFloat(document.getElementById(`c${prefix}_form`).value),
+    xg: parseFloat(document.getElementById(`c${prefix}_xg`).value),
+    xa: parseFloat(document.getElementById(`c${prefix}_xa`).value),
+    xgc: parseFloat(document.getElementById(`c${prefix}_xgc`).value) || 1.0,
+    ops: parseFloat(document.getElementById(`c${prefix}_ops`).value) || 1.0,
+    fdr: parseInt(document.getElementById(`c${prefix}_fdr`).value),
+    mins: parseInt(document.getElementById(`c${prefix}_mins`).value),
+    h2h: parseFloat(document.getElementById(`c${prefix}_h2h`).value),
+    mgr: parseFloat(document.getElementById(`c${prefix}_mgr`).value),
+    home: document.getElementById(`c${prefix}_home`).checked,
+    dgw: document.getElementById(`c${prefix}_dgw`).checked,
+    bgw: document.getElementById(`c${prefix}_bgw`).checked,
+    pen: document.getElementById(`c${prefix}_pen`).checked,
+    spc: document.getElementById(`c${prefix}_spc`).checked,
+    rot: document.getElementById(`c${prefix}_rot`).checked,
+    ret: false,
+  };
+}
+
+function calcTransfer() {
+  const a = getPlayerFromForm('a');
+  const b = getPlayerFromForm('b');
+  const ft = parseInt(document.getElementById('c_ft').value);
+  const own = document.getElementById('c_own').value;
+
+  const rA = calcScore(a);
+  const rB = calcScore(b);
+
+  document.getElementById('tr-score-a').textContent = rA.score;
+  document.getElementById('tr-score-b').textContent = rB.score;
+  document.getElementById('tr-name-a').textContent = a.name;
+  document.getElementById('tr-name-b').textContent = b.name;
+
+  const diff = rB.score - rA.score;
+  const hitPenalty = ft <= 0 ? 4 : 0;  // 4pt hit in score terms ≈ ~4 score points (rough proxy)
+  const netGain = diff - hitPenalty;
+
+  let verdict, reasoning, vClass;
+  if (b.bgw) {
+    verdict = '❌ Do Not Transfer';
+    vClass = 'verdict-no';
+    reasoning = `${b.name} has a blank gameweek — don't bring them in for a GW where they won't play. Consider waiting or using a Free Hit instead.`;
+  } else if (netGain >= 15) {
+    verdict = '✅ Strong Transfer';
+    vClass = 'verdict-yes';
+    reasoning = `Score improvement of +${diff} (net +${netGain} after ${hitPenalty > 0 ? '4pt hit' : 'no hit'}). This is a clear upgrade worth making.`;
+  } else if (netGain >= 5) {
+    verdict = '✅ Recommended';
+    vClass = 'verdict-yes';
+    reasoning = `Score improvement of +${diff} (net +${netGain}). Worthwhile, especially over a 3-GW horizon.`;
+  } else if (netGain >= 0) {
+    verdict = '⚠️ Marginal';
+    vClass = 'verdict-maybe';
+    reasoning = `Score improvement of +${diff} (net +${netGain}). Only proceed if you have specific non-metric reasons (injury concern, price rise, DGW structure).`;
+  } else {
+    verdict = '❌ Not Recommended';
+    vClass = 'verdict-no';
+    reasoning = `Net score loss of ${Math.abs(netGain)}${hitPenalty > 0 ? ' including 4pt hit' : ''}. Hold ${a.name} unless there's an injury or an upcoming BGW to plan around.`;
+  }
+
+  if (own === 'differential' && diff > 0 && rB.score >= 65) {
+    reasoning += ` As a differential (${b.name} likely low-owned), upside is amplified — good for rank recovery.`;
+  }
+  if (b.dgw) reasoning += ` ${b.name} has a Double GW — fixture multiplier already included.`;
+  if (a.rot) reasoning += ` ${a.name} has rotation risk this GW — an additional reason to move on.`;
+
+  const verdictEl = document.getElementById('tr-verdict');
+  verdictEl.textContent = verdict;
+  verdictEl.className = `transfer-verdict ${vClass}`;
+  document.getElementById('tr-reasoning').textContent = reasoning;
+  document.getElementById('transfer-result').style.display = 'block';
+
+  // Compare bar chart
+  const keys = Object.keys(METRIC_LABELS);
+  const dataA = keys.map(k => rA.breakdown[k] ? rA.breakdown[k].norm * 100 : 0);
+  const dataB = keys.map(k => rB.breakdown[k] ? rB.breakdown[k].norm * 100 : 0);
+
+  if (compareChart) compareChart.destroy();
+  compareChart = new Chart(document.getElementById('compareChart'), {
+    type: 'bar',
+    data: {
+      labels: Object.values(METRIC_LABELS),
+      datasets: [
+        { label: a.name, data: dataA, backgroundColor: 'rgba(255,107,107,0.7)', borderRadius: 4 },
+        { label: b.name, data: dataB, backgroundColor: 'rgba(0,255,135,0.7)', borderRadius: 4 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#8b949e', font: { size: 11 } } } },
+      scales: {
+        x: { ticks: { color: '#8b949e', font: { size: 10 } }, grid: { color: '#21262d' } },
+        y: { min: 0, max: 100, ticks: { color: '#8b949e' }, grid: { color: '#21262d' } }
+      }
+    }
+  });
+}
+
+// Send Player In (b) from compare result to shortlist or XI
+function addCompareToShortlist(prefix) {
+  const name = document.getElementById(`c_${prefix}_name`).value || 'Player In';
+  const pos  = document.getElementById(`c_${prefix}_pos`).value || 'mid';
+  const score = parseInt(document.getElementById(`tr-score-${prefix}`).textContent) || 0;
+  if (!score) { alert('Run Evaluate Transfer first.'); return; }
+  shortlist.push({ name, pos, decision: 'transfer', score, topFactor: 'Transfer', flags: [] });
+  renderShortlist();
+  switchTab('evaluate');
+}
+
+function addCompareToXI(prefix) {
+  const name = document.getElementById(`c_${prefix}_name`).value || 'Player In';
+  const pos  = document.getElementById(`c_${prefix}_pos`).value || 'mid';
+  const score = parseInt(document.getElementById(`tr-score-${prefix}`).textContent) || 0;
+  if (!score) { alert('Run Evaluate Transfer first.'); return; }
+  if (xiSquad.length >= 15) { alert('Starting XI builder already has 15 players.'); return; }
+  xiSquad.push({ name, pos, score, doubt: false });
+  renderXISquad();
+  switchTab('xi');
+}
+
+// ============================================================
+// STARTING XI
+// ============================================================
+function addXIPlayer() {
+  const name = document.getElementById('xi_name').value || 'Unknown';
+  const pos = document.getElementById('xi_pos').value;
+  const score = parseInt(document.getElementById('xi_score').value) || 0;
+  const doubt = document.getElementById('xi_doubt').checked;
+  xiSquad.push({ name, pos, score, doubt });
+  renderXISquad();
+  document.getElementById('xi_name').value = '';
+}
+
+function renderXISquad() {
+  const body = document.getElementById('xi-squad-body');
+  body.innerHTML = xiSquad.map((p, i) => `
+    <tr>
+      <td>${p.name}</td>
+      <td><span class="pos-badge pos-${p.pos}">${p.pos.toUpperCase()}</span></td>
+      <td style="color:#00ff87;font-weight:700;">${p.score}</td>
+      <td>${p.doubt ? '<span class="flag flag-warn">Doubt</span>' : '<span style="color:#00ff87;font-size:0.75rem;">✓</span>'}</td>
+      <td><button class="btn btn-danger" style="padding:2px 7px;font-size:0.72rem;" onclick="xiSquad.splice(${i},1);renderXISquad()">✕</button></td>
+    </tr>`).join('');
+}
+
+function clearXI() { xiSquad = []; renderXISquad(); document.getElementById('xi-result').style.display = 'none'; }
+
+function exportSquad() {
+  if (!xiSquad.length) { alert('No players in squad to export.'); return; }
+  const payload = { version: 1, exported: new Date().toISOString(), squad: xiSquad };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const gw = document.getElementById('gw-input').value || 'X';
+  a.download = `FPL_Squad_GW${gw}_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function importSquad(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      const squad = data.squad || data; // handle both wrapped and bare arrays
+      if (!Array.isArray(squad)) throw new Error('Invalid format');
+      xiSquad = squad;
+      renderXISquad();
+      document.getElementById('xi-result').style.display = 'none';
+      alert(`✓ Loaded ${xiSquad.length} players from ${file.name}`);
+    } catch(err) {
+      alert(`Could not read file: ${err.message}`);
+    }
+    event.target.value = ''; // reset so same file can be re-imported if needed
+  };
+  reader.readAsText(file);
+}
+
+function buildXI() {
+  const gkp = xiSquad.filter(p=>p.pos==='gkp').sort((a,b)=>b.score-a.score);
+  const def = xiSquad.filter(p=>p.pos==='def').sort((a,b)=>b.score-a.score);
+  const mid = xiSquad.filter(p=>p.pos==='mid').sort((a,b)=>b.score-a.score);
+  const fwd = xiSquad.filter(p=>p.pos==='fwd').sort((a,b)=>b.score-a.score);
+
+  if (gkp.length < 1) { alert('Need at least 1 GKP'); return; }
+
+  // Pick starter GKP
+  const starterGKP = gkp[0];
+  const bench = [gkp[1]].filter(Boolean);
+  const remaining = [...def.slice(0,5), ...mid.slice(0,5), ...fwd.slice(0,3)];
+
+  // Greedy: fill minimum requirements first
+  let xi = [starterGKP];
+  let usedDef = 0, usedMid = 0, usedFwd = 0;
+
+  // Min requirements
+  const minDef = def.slice(0, 3);
+  const minMid = mid.slice(0, 2);
+  const minFwd = fwd.slice(0, 1);
+  xi.push(...minDef); usedDef = 3;
+  xi.push(...minMid); usedMid = 2;
+  xi.push(...minFwd); usedFwd = 1;
+
+  // Fill remaining 4 spots from best available
+  const pool = [
+    ...def.slice(3).map(p=>({...p,_slot:'def'})),
+    ...mid.slice(2).map(p=>({...p,_slot:'mid'})),
+    ...fwd.slice(1).map(p=>({...p,_slot:'fwd'})),
+  ].sort((a,b)=>b.score-a.score);
+
+  let spots = 4;
+  for (const p of pool) {
+    if (spots === 0) break;
+    if (p._slot==='def' && usedDef < 5) { xi.push(p); usedDef++; spots--; }
+    else if (p._slot==='mid' && usedMid < 5) { xi.push(p); usedMid++; spots--; }
+    else if (p._slot==='fwd' && usedFwd < 3) { xi.push(p); usedFwd++; spots--; }
+  }
+
+  // Bench = everyone not in XI
+  const xiNames = xi.map(p=>p.name);
+  // FPL bench order: backup GKP in its own slot, then outfield subs by score (1st sub = highest)
+  const benchAll = xiSquad.filter(p=>!xiNames.includes(p.name));
+  const benchGK = benchAll.filter(p=>p.pos==='gkp');
+  const benchOut = benchAll.filter(p=>p.pos!=='gkp').sort((a,b)=>b.score-a.score);
+
+  // Render
+  const result = document.getElementById('xi-result');
+  result.style.display = 'block';
+  const formation = `${usedDef}-${usedMid}-${usedFwd}`;
+
+  const posOrder = {gkp:0,def:1,mid:2,fwd:3};
+  xi.sort((a,b)=>posOrder[a.pos]-posOrder[b.pos]);
+
+  document.getElementById('xi-output').innerHTML = `
+    <p style="color:#00ff87;font-weight:700;margin-bottom:12px;">Formation: ${formation}</p>
+    <table>
+      <thead><tr><th>Pos</th><th>Player</th><th>Score</th><th>Note</th></tr></thead>
+      <tbody>
+        ${xi.map(p=>`<tr>
+          <td><span class="pos-badge pos-${p.pos}">${p.pos.toUpperCase()}</span></td>
+          <td><strong>${p.name}</strong></td>
+          <td style="color:#00ff87;font-weight:700;">${p.score}</td>
+          <td>${p.doubt?'<span class="flag flag-warn" style="font-size:0.65rem;">⚠ Doubt</span>':''}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+    ${benchAll.length ? `<p style="color:#8b949e;font-size:0.8rem;margin-top:14px;line-height:1.7;"><strong style="color:#e6edf3;">Bench (FPL order):</strong>
+      ${benchGK.map(p=>`<span style="color:#e6edf3;">GKP</span> ${p.name} (${p.score})${p.doubt?' ⚠':''}`).join(', ')}${benchGK.length && benchOut.length ? ' · ' : ''}
+      ${benchOut.map((p,i)=>`<span style="color:#e6edf3;">${i+1}.</span> ${p.name} <span style="color:#555;">${p.pos.toUpperCase()}</span> (${p.score})${p.doubt?' ⚠':''}`).join(' · ')}</p>` : ''}
+  `;
+}
+
+// ============================================================
+// CHIP PLANNER
+// ============================================================
+// 2026/27 rules: two sets of Wildcard, Free Hit, Triple Captain, Bench Boost.
+// Set 1 must be played before the GW19 deadline (13:30 GMT Sat 2 Jan 2027).
+const CHIP_DEFS = [
+  {key:'wc', name:'Wildcard',       icon:'🃏'},
+  {key:'fh', name:'Free Hit',       icon:'🔄'},
+  {key:'tc', name:'Triple Captain', icon:'⭐'},
+  {key:'bb', name:'Bench Boost',    icon:'🚀'},
+];
+const SET1_DEADLINE = new Date('2027-01-02T13:30:00Z'); // GMT = UTC in January
+const CHIP_STORE_KEY = 'fpl_chips_2627';
+let chipStates = {};
+try { chipStates = JSON.parse(localStorage.getItem(CHIP_STORE_KEY) || '{}') || {}; } catch(_) { chipStates = {}; }
+
+function saveChipStates() {
+  try { localStorage.setItem(CHIP_STORE_KEY, JSON.stringify(chipStates)); } catch(_) {}
+}
+
+function renderChips() {
+  const set1Closed = new Date() >= SET1_DEADLINE;
+  [1, 2].forEach(set => {
+    const grid = document.getElementById('chip-grid-' + set);
+    if (!grid) return;
+    grid.innerHTML = CHIP_DEFS.map(c => {
+      const id = c.key + set;
+      const st = chipStates[id] || {};
+      const lost = set === 1 && set1Closed && !st.used;
+      const status = st.used
+        ? `<div class="chip-status done">Used${st.gw ? ' — GW' + st.gw : ''}</div>`
+        : lost ? `<div class="chip-status locked">Expired</div>`
+               : `<div class="chip-status avail">Available</div>`;
+      const btn = lost ? '' : `<button class="chip-btn" onclick="toggleChip('${id}')">${st.used ? 'Undo' : 'Mark used'}</button>`;
+      return `<div class="chip-card ${st.used || lost ? 'used' : ''}" id="chip-${id}">
+        <div class="chip-icon">${c.icon}</div>
+        <div class="chip-name">${c.name.toUpperCase()} ${set}</div>
+        ${status}${btn}
+      </div>`;
+    }).join('');
+  });
+  renderChipDeadline();
+}
+
+function renderChipDeadline() {
+  const el = document.getElementById('chip-deadline');
+  if (!el) return;
+  const now = new Date();
+  const unused = CHIP_DEFS.filter(c => !(chipStates[c.key + '1'] || {}).used).map(c => c.name);
+  if (now >= SET1_DEADLINE) {
+    el.className = 'deadline-banner closed';
+    el.innerHTML = '<strong>Set 1 window closed</strong> (GW19 deadline passed). Set 2 is now in play.';
+    return;
+  }
+  const days = Math.ceil((SET1_DEADLINE - now) / 86400000);
+  if (!unused.length) {
+    el.className = 'deadline-banner ok';
+    el.innerHTML = `<strong>All Set 1 chips used.</strong> ${days} day${days === 1 ? '' : 's'} until the GW19 deadline.`;
+  } else {
+    el.className = 'deadline-banner warn';
+    el.innerHTML = `<strong>${days} day${days === 1 ? '' : 's'} left</strong> to play Set 1 (GW19 deadline, 13:30 GMT Sat 2 Jan). ` +
+      `<strong>${unused.length} unused:</strong> ${unused.join(', ')}. Unused Set 1 chips are lost.`;
+  }
+}
+
+function toggleChip(id) {
+  const st = chipStates[id] || {};
+  if (st.used) {
+    chipStates[id] = { used: false };
+  } else {
+    const gw = parseInt(document.getElementById('chip-gw').value) || null;
+    if (id.endsWith('1') && gw && gw > 19) { alert('Set 1 chips must be played by GW19.'); return; }
+    if (id.endsWith('2') && gw && gw < 20) { alert('Set 2 chips are for the second half (GW20 onwards).'); return; }
+    if (id === 'fh1' && gw === 1) { alert('Free Hit cannot be played in GW1.'); return; }
+    const clash = Object.entries(chipStates).find(([k, v]) => k !== id && v.used && gw && v.gw === gw);
+    if (clash) { alert('Only one chip can be played per gameweek — GW' + gw + ' already has one recorded.'); return; }
+    chipStates[id] = { used: true, gw };
+  }
+  saveChipStates();
+  renderChips();
+}
+
+function saveChipNotes() {
+  try { localStorage.setItem('fpl_chip_notes', document.getElementById('chip-notes').value); } catch(_) {}
+}
+
+// ============================================================
+// WEIGHT EDITOR
+// ============================================================
+function renderWeightsEditor() {
+  const container = document.getElementById('weights-cards');
+  container.innerHTML = Object.entries(WEIGHTS).map(([decision, w]) => `
+    <div class="card" style="margin-bottom:16px;">
+      <h3>${decision.replace('_',' ').toUpperCase()}</h3>
+      <div class="weight-grid">
+        ${Object.entries(w).map(([metric, val]) => `
+          <div class="w-row">
+            <label>${METRIC_LABELS[metric]}</label>
+            <input type="number" id="w_${decision}_${metric}" value="${val}" step="0.01" min="0" max="1" style="width:60px;">
+          </div>`).join('')}
+      </div>
+      <div class="weight-total" id="wt_${decision}">Total: ${Object.values(w).reduce((s,v)=>s+v,0).toFixed(2)}</div>
+    </div>`).join('');
+}
+
+function saveWeights() {
+  for (const [decision, w] of Object.entries(WEIGHTS)) {
+    for (const metric of Object.keys(w)) {
+      const val = parseFloat(document.getElementById(`w_${decision}_${metric}`).value) || 0;
+      WEIGHTS[decision][metric] = val;
+    }
+    const total = Object.values(WEIGHTS[decision]).reduce((s,v)=>s+v,0);
+    document.getElementById(`wt_${decision}`).textContent = `Total: ${total.toFixed(2)}${Math.abs(total-1)>0.01?' ⚠️ should sum to 1.0':''}`;
+  }
+  // Persist to localStorage — survives page reloads and browser restarts
+  try { localStorage.setItem('fpl_weights_v1', JSON.stringify(WEIGHTS)); } catch(_) {}
+  document.getElementById('weight-save-msg').style.display = 'block';
+  setTimeout(() => document.getElementById('weight-save-msg').style.display = 'none', 3000);
+}
+
+function resetWeights() {
+  WEIGHTS = JSON.parse(JSON.stringify(DEFAULT_WEIGHTS));
+  try { localStorage.removeItem('fpl_weights_v1'); } catch(_) {}
+  renderWeightsEditor();
+}
+
+// ============================================================
+// TABS
+// ============================================================
+const TABS = ['myteam','evaluate','compare','xi','chips','weights','guide'];
+function switchTab(name) {
+  TABS.forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===name?'block':'none';
+  });
+  document.querySelectorAll('.tab').forEach((el,i) => {
+    el.classList.toggle('active', TABS[i]===name);
+  });
+  if (name === 'weights') renderWeightsEditor();
+  if (name === 'chips') renderChips();
+  if (name === 'myteam' && !MT.data && !MT.loading) loadMyTeam();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ============================================================
+// FIXTURE HELPER — FPL API (official FDR, no key required)
+// ============================================================
+
+// 2026/27 team names — embedded as fallback; updated by live fetch when FPL opens (Aug 2026)
+// IDs for Coventry (3), Ipswich (19), Hull (20) are placeholders — FPL will assign
+// confirmed IDs when the 2026/27 game opens. Update these if they differ.
+const EMBEDDED_TEAMS = {
+  1:{name:'Arsenal',short:'ARS'}, 2:{name:'Aston Villa',short:'AVL'},
+  3:{name:'Coventry',short:'COV'},      // promoted — ID TBC
+  4:{name:'Bournemouth',short:'BOU'},
+  5:{name:'Brentford',short:'BRE'}, 6:{name:'Brighton',short:'BHA'},
+  7:{name:'Chelsea',short:'CHE'}, 8:{name:'Crystal Palace',short:'CRY'},
+  9:{name:'Everton',short:'EVE'}, 10:{name:'Fulham',short:'FUL'},
+  11:{name:'Leeds',short:'LEE'}, 12:{name:'Liverpool',short:'LIV'},
+  13:{name:'Man City',short:'MCI'}, 14:{name:'Man Utd',short:'MUN'},
+  15:{name:'Newcastle',short:'NEW'}, 16:{name:"Nott'm Forest",short:'NFO'},
+  17:{name:'Sunderland',short:'SUN'}, 18:{name:'Spurs',short:'TOT'},
+  19:{name:'Ipswich',short:'IPS'},      // promoted — ID TBC
+  20:{name:'Hull',short:'HUL'},         // promoted — ID TBC
+};
+let fplTeamCache = {...EMBEDDED_TEAMS};
+
+function togglePasteMode() {
+  const el = document.getElementById('paste-mode');
+  const opening = el.style.display === 'none';
+  el.style.display = opening ? 'block' : 'none';
+  if (opening) populateManualDropdowns();
+}
+
+function populateManualDropdowns() {
+  const teams = Object.entries(fplTeamCache).sort((a,b) => a[1].name.localeCompare(b[1].name));
+  const opts = teams.map(([id, t]) => `<option value="${id}">${t.name}</option>`).join('');
+  document.getElementById('manual-home').innerHTML = opts;
+  document.getElementById('manual-away').innerHTML = opts;
+  // Default: first two different teams
+  if (teams.length >= 2) document.getElementById('manual-away').value = teams[1][0];
+}
+
+function addManualFixture() {
+  const hId = parseInt(document.getElementById('manual-home').value);
+  const aId = parseInt(document.getElementById('manual-away').value);
+  if (hId === aId) { setFixtureStatus('⚠ Home and away teams must be different', '#f0a500'); return; }
+  const hFdr = parseInt(document.getElementById('manual-hfdr').value);
+  const aFdr = parseInt(document.getElementById('manual-afdr').value);
+  const ko   = document.getElementById('manual-ko').value || '';
+  // Build a synthetic fixture object matching the FPL API shape
+  const fixture = { team_h: hId, team_a: aId, team_h_difficulty: hFdr, team_a_difficulty: aFdr, kickoff_time: ko };
+  // Append to existing list or start fresh
+  const existing = document.getElementById('fixture-list');
+  // Prevent duplicate — check if this exact matchup already exists
+  const matchKey = `${hId}-${aId}`;
+  if (existing.querySelector(`[data-match="${matchKey}"]`)) {
+    setFixtureStatus(`⚠ ${home.name} vs ${away.name} already added`, '#f0a500'); return;
+  }
+  // Render just this one fixture appended
+  const home = fplTeamCache[hId] || { name:`Team ${hId}`, short:'?' };
+  const away = fplTeamCache[aId] || { name:`Team ${aId}`, short:'?' };
+  const row = document.createElement('div');
+  row.setAttribute('data-match', matchKey);
+  row.style.cssText = 'background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:10px 12px;margin-bottom:6px;';
+  row.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <button onclick="applyFixture(${hId},${hFdr},true,'${home.name} vs ${away.name}')"
+        style="background:#0d2b16;border:1px solid #00803f;color:#00ff87;border-radius:6px;padding:5px 10px;font-size:0.78rem;font-weight:700;cursor:pointer;">
+        🏠 ${home.short}
+      </button>
+      <span style="color:#30363d;font-size:0.8rem;">vs</span>
+      <button onclick="applyFixture(${aId},${aFdr},false,'${home.name} vs ${away.name}')"
+        style="background:#0a1f3a;border:1px solid #0069a8;color:#00d4ff;border-radius:6px;padding:5px 10px;font-size:0.78rem;font-weight:700;cursor:pointer;">
+        ✈️ ${away.short}
+      </button>
+      <div style="display:flex;gap:4px;margin-left:auto;">
+        <span class="fdr-pill fdr-${hFdr}" style="padding:3px 8px;font-size:0.68rem;">H: ${hFdr}</span>
+        <span class="fdr-pill fdr-${aFdr}" style="padding:3px 8px;font-size:0.68rem;">A: ${aFdr}</span>
+      </div>
+    </div>
+    ${ko ? `<div style="font-size:0.68rem;color:#8b949e;margin-top:5px;">${ko}</div>` : ''}`;
+  existing.appendChild(row);
+  setFixtureStatus(`✓ Added ${home.name} vs ${away.name} — click a team to apply`, '#00ff87');
+  document.getElementById('manual-ko').value = '';
+}
+
+// ── JSONP helper — same mechanism used successfully for league data ──
+function jsonpCall(params, onSuccess, onError, timeoutMs) {
+  const cbName = 'fplCb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+  const t = setTimeout(() => {
+    delete window[cbName];
+    onError('Timed out after ' + Math.round((timeoutMs||30000)/1000) + 's');
+  }, timeoutMs || 30000);
+
+  window[cbName] = function(result) {
+    clearTimeout(t);
+    delete window[cbName];
+    if (result.success !== false) onSuccess(result);
+    else onError(result.error || 'Server returned an error');
+  };
+
+  const qs = Object.keys(params)
+    .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
+    .join('&');
+
+  const s = document.createElement('script');
+  s.src = APPS_SCRIPT_URL + '?' + qs + '&callback=' + cbName + '&_t=' + Date.now();
+  s.onerror = () => { clearTimeout(t); delete window[cbName]; onError('Script load failed'); };
+  document.head.appendChild(s);
+}
+
+async function loadFixtures() {
+  const gw = parseInt(document.getElementById('gw-input').value);
+  if (!gw || gw < 1 || gw > 38) { setFixtureStatus('⚠ Enter a valid GW (1–38)', '#f0a500'); return; }
+
+  const fplUrl = `https://fantasy.premierleague.com/api/fixtures/?event=${gw}`;
+  document.getElementById('fpl-api-link').href = fplUrl;
+  document.getElementById('fpl-api-link').textContent = fplUrl;
+  setFixtureStatus('Fetching fixtures from FPL via Apps Script…', '#8b949e');
+  document.getElementById('fixture-list').innerHTML = '';
+
+  // Both fixtures and team names go through Apps Script JSONP —
+  // no third-party CORS proxy dependency at all.
+  // getFixtures is confirmed working. getTeams caches result for 1hr.
+
+  // ── STEP 1: Fixtures ──
+  jsonpCall({ action: 'getFixtures', event: gw }, function(fxResult) {
+    const fixtures = fxResult.fixtures || [];
+    if (!fixtures.length) {
+      setFixtureStatus('No fixtures found for GW' + gw + ' — check the gameweek number.', '#f0a500');
+      return;
+    }
+    console.log('Fixtures loaded via Apps Script:', fixtures.length);
+
+    // ── STEP 2: Team names ──
+    setFixtureStatus('Fetching 2026-27 team names…', '#8b949e');
+    jsonpCall({ action: 'getTeams' }, function(teamsResult) {
+      if (teamsResult.teams && teamsResult.teams.length) {
+        fplTeamCache = {};
+        for (const t of teamsResult.teams) {
+          fplTeamCache[t.id] = { name: t.name, short: t.short };
+        }
+        console.log('Team cache rebuilt:', teamsResult.teams.length, 'teams',
+                    teamsResult.fromCache ? '(cached)' : '(fresh)');
+      }
+      setFixtureStatus('✓ ' + fixtures.length + ' fixtures for GW' + gw + ' — click a team to apply', '#00ff87');
+      renderFixtureList(fixtures);
+
+    }, function(err) {
+      // Team names failed — still render fixtures, IDs shown as fallback
+      console.warn('getTeams failed:', err);
+      setFixtureStatus('⚠ Fixtures loaded but team names unverified (' + err + ')', '#f0a500');
+      renderFixtureList(fixtures);
+    }, 60000);
+
+  }, function(err) {
+    setFixtureStatus('Could not load fixtures: ' + err + ' — use ✏️ Manual entry instead.', '#f0a500');
+    document.getElementById('paste-mode').style.display = 'block';
+  }, 60000);
+}
+
+function renderFixtureList(fixtures, gw) {
+  const container = document.getElementById('fixture-list');
+  const rows = fixtures.map(f => {
+    const home = fplTeamCache[f.team_h] || { name: `Team ${f.team_h}`, short: '?' };
+    const away = fplTeamCache[f.team_a] || { name: `Team ${f.team_a}`, short: '?' };
+    const ko = f.kickoff_time ? new Date(f.kickoff_time).toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : 'TBC';
+    const hFdr = f.team_h_difficulty;
+    const aFdr = f.team_a_difficulty;
+    const hShort   = (home.short || '').replace(/'/g, '');
+    const aShort   = (away.short || '').replace(/'/g, '');
+    const hName    = (home.name  || '').replace(/'/g, '').replace(/"/g, '');
+    const aName    = (away.name  || '').replace(/'/g, '').replace(/"/g, '');
+    const label    = hName + ' vs ' + aName;
+
+    return `<div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:10px 12px;margin-bottom:6px;">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <button onclick="applyFixture(${f.team_h},${hFdr},true,'${label}','${hShort}','${aShort}')"
+          style="background:#0d2b16;border:1px solid #00803f;color:#00ff87;border-radius:6px;padding:5px 10px;font-size:0.78rem;font-weight:700;cursor:pointer;">
+          🏠 ${home.short}
+        </button>
+        <span style="color:#30363d;font-size:0.8rem;">vs</span>
+        <button onclick="applyFixture(${f.team_a},${aFdr},false,'${label}','${hShort}','${aShort}')"
+          style="background:#0a1f3a;border:1px solid #0069a8;color:#00d4ff;border-radius:6px;padding:5px 10px;font-size:0.78rem;font-weight:700;cursor:pointer;">
+          ✈️ ${away.short}
+        </button>
+        <div style="display:flex;gap:4px;margin-left:auto;">
+          <span class="fdr-pill fdr-${hFdr}" style="padding:3px 8px;font-size:0.68rem;">H: ${hFdr}</span>
+          <span class="fdr-pill fdr-${aFdr}" style="padding:3px 8px;font-size:0.68rem;">A: ${aFdr}</span>
+        </div>
+      </div>
+      <div style="font-size:0.68rem;color:#8b949e;margin-top:5px;">${ko}</div>
+    </div>`;
+  });
+  container.innerHTML = rows.join('');
+}
+
+// Stores the last applied fixture's team codes for H2H lookup
+let currentFixtureHome   = '';
+let currentFixtureAway   = '';
+let currentFixtureIsHome = true; // tracks whether the clicked team is home or away
+
+function applyFixture(teamId, fdr, isHome, matchLabel, homeShort, awayShort) {
+  document.getElementById('m_venue').value = isHome ? 'home' : 'away';
+  setFDR(fdr);
+  renderBreakdown();
+  setFixtureStatus(`✓ Applied: ${isHome ? '🏠 Home' : '✈️ Away'} · FDR ${fdr} · ${matchLabel}`, '#00ff87');
+
+  // Store team codes and direction, then show H2H button
+  currentFixtureHome   = homeShort || '';
+  currentFixtureAway   = awayShort || '';
+  currentFixtureIsHome = isHome;
+  const h2hBtn = document.getElementById('h2h-auto-btn');
+  const h2hPanel = document.getElementById('h2h-result-panel');
+  if (h2hBtn) h2hBtn.style.display = 'inline-block';
+  if (h2hPanel) h2hPanel.innerHTML = '';
+}
+
+function setFDR(val) {
+  document.getElementById('m_fdr').value = val;
+  document.getElementById('v_fdr').textContent = val;
+  // Highlight active pill
+  document.querySelectorAll('.fdr-pill').forEach(el => {
+    el.classList.toggle('active-pill', el.classList.contains('fdr-'+val));
+  });
+  renderBreakdown();
+}
+
+function setFixtureStatus(msg, color) {
+  const el = document.getElementById('fixture-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = color || '#8b949e';
+}
+
+// ── AUTO H2H — fetches H2H record via Apps Script → football-data.org ──
+function autoH2H() {
+  if (!currentFixtureHome || !currentFixtureAway) {
+    document.getElementById('h2h-btn-note').textContent = 'Apply a fixture first.';
+    return;
+  }
+  const btn  = document.getElementById('h2h-auto-btn');
+  const note = document.getElementById('h2h-btn-note');
+  const panel = document.getElementById('h2h-result-panel');
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Loading H2H…';
+  note.textContent = '';
+  panel.innerHTML = '';
+
+  const cbName = 'h2hCb_' + Date.now();
+  const timeout = setTimeout(() => {
+    delete window[cbName];
+    btn.disabled = false;
+    btn.textContent = '🔍 Auto H2H';
+    note.textContent = 'Timed out — try again';
+  }, 30000);
+
+  window[cbName] = function(result) {
+    clearTimeout(timeout);
+    delete window[cbName];
+    btn.disabled = false;
+    btn.textContent = '🔍 Auto H2H';
+
+    if (!result.success) {
+      note.textContent = '⚠ ' + result.error;
+      return;
+    }
+
+    // H2H score is always calculated as HOME team win rate.
+    // When evaluating an AWAY team player, invert it so the score
+    // reflects the selected team's actual advantage/disadvantage.
+    const adjustedScore = currentFixtureIsHome
+      ? result.score
+      : Math.round((1 - result.score) * 100) / 100;
+
+    // Auto-set the H2H slider
+    const slider = document.getElementById('m_h2h');
+    if (slider) {
+      slider.value = adjustedScore;
+      document.getElementById('v_h2h').textContent = adjustedScore.toFixed(2);
+      renderBreakdown();
+    }
+
+    const perspectiveNote = currentFixtureIsHome
+      ? '(home team perspective)'
+      : '(away team · score inverted from home rate of ' + result.score.toFixed(2) + ')';
+    const sampleLabel = result.total > 0 ? result.total + ' meetings' : 'no PL data';
+    note.textContent = '→ H2H set to ' + adjustedScore.toFixed(2) + ' · ' + sampleLabel + ' · ' + perspectiveNote;
+    panel.innerHTML = renderH2HResult(result, currentFixtureIsHome);
+  };
+
+  const s = document.createElement('script');
+  s.src = APPS_SCRIPT_URL + '?action=getH2H&home=' + encodeURIComponent(currentFixtureHome) +
+          '&away=' + encodeURIComponent(currentFixtureAway) + '&callback=' + cbName + '&_t=' + Date.now();
+  s.onerror = function() {
+    clearTimeout(timeout);
+    delete window[cbName];
+    btn.disabled = false;
+    btn.textContent = '🔍 Auto H2H';
+    note.textContent = '⚠ Could not reach Apps Script';
+  };
+  document.head.appendChild(s);
+}
+
+function renderH2HResult(r, isHome) {
+  const pct = n => Math.round(n * 100) + '%';
+  const winnerColour = w => w === 'HOME_TEAM' ? '#00ff87' : w === 'AWAY_TEAM' ? '#ff6b6b' : '#f0a500';
+  const winnerLabel  = w => w === 'HOME_TEAM' ? 'H' : w === 'AWAY_TEAM' ? 'A' : 'D';
+
+  // Display score from the selected team's perspective
+  const displayScore   = isHome ? r.score : Math.round((1 - r.score) * 100) / 100;
+  const selectedWins   = isHome ? r.homeWins : r.awayWins;
+  const perspectiveStr = isHome
+    ? `${r.homeWins} home wins from ${r.total} meetings · ${pct(r.score)} home win rate`
+    : `${r.awayWins} away wins from ${r.total} meetings · ${pct(1 - r.score)} away win rate`;
+
+  let recentHtml = '';
+  if (r.recent && r.recent.length) {
+    recentHtml = r.recent.map(m =>
+      `<span style="display:inline-block;background:#1a1e28;border:1px solid #2a2f3f;border-radius:4px;padding:2px 7px;margin:2px;font-size:0.7rem;">
+        <span style="color:${winnerColour(m.winner)};font-weight:700;">${winnerLabel(m.winner)}</span>
+        ${m.homeGoals !== null ? m.homeGoals + '–' + m.awayGoals : '?–?'}
+        <span style="color:#555;font-size:0.65rem;">${m.season}</span>
+      </span>`
+    ).join('');
+  }
+
+  return `<div style="background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:10px 14px;">
+    <div style="font-weight:700;color:#88bbff;margin-bottom:2px;">
+      ${r.homeTeam} vs ${r.awayTeam} — last ${r.total} meetings at home
+    </div>
+    <div style="font-size:0.68rem;color:#8b949e;margin-bottom:8px;">
+      H = ${r.homeTeam} won · A = ${r.awayTeam} won · scores shown as Home–Away
+    </div>
+    ${r.note ? `<div style="color:#f0a500;font-size:0.72rem;margin-bottom:6px;">${r.note}</div>` : ''}
+    ${r.total > 0 ? `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center;margin-bottom:8px;">
+      <div><div style="font-size:1.1rem;font-weight:900;color:#00ff87;">${r.homeWins}</div><div style="font-size:0.65rem;color:#555;">${r.homeTeam} wins</div></div>
+      <div><div style="font-size:1.1rem;font-weight:900;color:#f0a500;">${r.draws}</div><div style="font-size:0.65rem;color:#555;">Draws</div></div>
+      <div><div style="font-size:1.1rem;font-weight:900;color:#ff6b6b;">${r.awayWins}</div><div style="font-size:0.65rem;color:#555;">${r.awayTeam} wins</div></div>
+    </div>
+    <div style="font-size:0.7rem;color:#8b949e;margin-bottom:6px;">
+      H2H score: <strong style="color:#88bbff;">${displayScore.toFixed(2)}</strong> — ${perspectiveStr}
+    </div>
+    ${recentHtml ? '<div style="margin-top:4px;">'+recentHtml+'</div>' : ''}
+    ` : `<div style="color:#f0a500;font-size:0.72rem;">No PL data — score defaulted to 0.50 (neutral)</div>`}
+  </div>`;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+
+// Restore saved weights from localStorage — key fpl_weights_v1
+// is URL-independent so works regardless of ?v= query strings
+try {
+  const saved = localStorage.getItem('fpl_weights_v1');
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    for (const [decision, w] of Object.entries(parsed)) {
+      if (WEIGHTS[decision]) {
+        for (const [metric, val] of Object.entries(w)) {
+          if (metric in WEIGHTS[decision]) WEIGHTS[decision][metric] = val;
+        }
+      }
+    }
+  }
+} catch(_) {}
+
+renderWeightsEditor();
+
+// ── Input tooltips: hover the ⓘ next to a label to see where the number comes from ──
+const INPUT_TIPS = {
+  m_form: "FPL player profile → Form (average points per match over roughly the last month).",
+  m_xg:   "FPL profile → History → Per 90 row → xG. Beware small samples (under ~300 minutes). Above 1.0 scores the same as 1.0.",
+  m_xa:   "FPL profile → History → Per 90 row → xA. Above 0.6 scores the same as 0.6.",
+  m_xgc:  "GKP/DEF only. FPL profile → History → Per 90 row → xGC. Lower is better.",
+  m_fdr:  "Set automatically by clicking a team in Fixture Lookup.",
+  m_mins: "Total minutes ÷ (gameweeks played × 90) × 100. E.g. 720 mins after 10 GWs = 80.",
+  m_h2h:  "Use 🔍 Auto H2H after clicking a team in Fixture Lookup. 0.50 = no data or even.",
+  m_mgr:  "No automatic source. Leave at 0.33 unless you know the managers' record.",
+  m_ops:  "Totals row: goals scored ÷ season total xG (not per 90). Leave at 1.00 for GKP/DEF and small samples.",
+};
+function applyInputTips() {
+  Object.entries(INPUT_TIPS).forEach(([id, tip]) => {
+    const input = document.getElementById(id);
+    if (!input) return;
+    const label = input.closest('.metric-row') ? input.closest('.metric-row').querySelector('label') : null;
+    if (!label || label.querySelector('.tip-i')) return;
+    label.title = tip;
+    const i = document.createElement('span');
+    i.className = 'tip-i';
+    i.textContent = 'ⓘ';
+    i.title = tip;
+    label.appendChild(i);
+  });
+}
+applyInputTips();
+try { const n = localStorage.getItem('fpl_chip_notes'); if (n) document.getElementById('chip-notes').value = n; } catch(_) {}
+renderChips();
+
+// ============================================================
+// FPL PLAYER AUTO-FILL (Phase 1) — data via Apps Script getPlayers
+// ============================================================
+const POS_MAP  = {1:'gkp', 2:'def', 3:'mid', 4:'fwd'};
+const POS_NAME = {1:'GKP', 2:'DEF', 3:'MID', 4:'FWD'};
+let FPL = null;              // { meta, players:[obj], byLabel:{} }
+let playersLoading = false;
+let playersWaiters = [];
+
+function setPlStatus(msg) {
+  ['eval','a','b'].forEach(t => {
+    const el = document.getElementById('pl-status-' + t);
+    if (el) el.innerHTML = msg;
+  });
+}
+
+function ensurePlayers(cb, fresh) {
+  if (FPL && !fresh) { if (cb) cb(); return; }
+  if (cb) playersWaiters.push(cb);
+  if (playersLoading) return;
+  playersLoading = true;
+  setPlStatus('Loading FPL players…');
+  const params = { action: 'getPlayers' };
+  if (fresh) params.fresh = '1';
+  jsonpCall(params, function(res) {
+    playersLoading = false;
+    buildPlayerIndex(res);
+    const w = playersWaiters; playersWaiters = [];
+    w.forEach(fn => { try { fn(); } catch(e) { console.error(e); } });
+  }, function(err) {
+    playersLoading = false;
+    playersWaiters = [];
+    setPlStatus('⚠ ' + err + ' — click the box to retry');
+  }, 90000);
+}
+
+function refreshPlayers() {
+  FPL = null;
+  ensurePlayers(null, true);
+}
+
+function buildPlayerIndex(res) {
+  const f = res.fields || [];
+  const players = (res.players || []).map(row => {
+    const o = {}; f.forEach((k, i) => o[k] = row[i]); return o;
+  });
+  players.sort((a, b) => b.pts - a.pts);
+  const byLabel = {};
+  const options = [];
+  players.forEach(p => {
+    const team = (res.teams[p.team] || {}).short || '?';
+    let label = `${p.name} — ${team} ${POS_NAME[p.pos] || ''} £${(p.cost / 10).toFixed(1)}m`;
+    if (byLabel[label]) label += ` #${p.id}`;
+    p.label = label; p.teamShort = team;
+    byLabel[label] = p;
+    options.push(`<option value="${label.replace(/"/g, '&quot;')}">`);
+  });
+  document.getElementById('fpl-player-list').innerHTML = options.join('');
+  FPL = { meta: res, players, byLabel };
+  const t = new Date(res.updated);
+  const hhmm = t.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  setPlStatus(`${players.length} players · FPL data ${hhmm} · <span class="pl-refresh" onclick="refreshPlayers()">↻ refresh</span>`);
+}
+
+function onPlayerSearch(input, target) {
+  if (!FPL) { ensurePlayers(() => onPlayerSearch(input, target)); return; }
+  const p = FPL.byLabel[input.value];
+  if (!p) return;
+  fillPlayer(target, p);
+}
+
+// Works out every dashboard input from one FPL player record
+function derivePlayer(p) {
+  const m = FPL.meta;
+  const pos = POS_MAP[p.pos] || 'mid';
+  const attacker = pos === 'mid' || pos === 'fwd';
+  const fin = m.finishedGWs || 0;
+  const minsPct = fin > 0 ? Math.min(100, Math.round(p.mins / (fin * 90) * 100)) : 0;
+  let ops = 1.0;
+  if (attacker && p.xg >= 1.0) ops = Math.max(0.1, Math.min(2, Math.round(p.goals / p.xg * 100) / 100));
+  const fx = (m.nextFixtures && m.nextFixtures[p.team]) || [];
+  const bgw = fx.length === 0;
+  const dgw = fx.length >= 2;
+  const first = fx[0] || null;
+  let fdr = 3;
+  if (first) {
+    const avg = fx.reduce((s, x) => s + x.fdr, 0) / fx.length;
+    fdr = Math.max(2, Math.min(5, Math.round(avg)));
+  }
+  return {
+    pos, attacker, minsPct, ops, fx, bgw, dgw, first, fdr,
+    home: first ? !!first.home : true,
+    pen: p.pen === 1,
+    spc: p.fk === 1 || p.corners === 1,
+  };
+}
+
+function oppShort(teamId) { return ((FPL.meta.teams || {})[teamId] || {}).short || '?'; }
+
+function playerInfoHtml(p, d) {
+  const m = FPL.meta;
+  const chips = [];
+  if (p.status === 'a' || !p.status) chips.push('<span class="pl-chip ok">Available</span>');
+  else if (p.status === 'd') chips.push(`<span class="pl-chip warn">⚠ ${p.chance != null ? p.chance + '% chance' : 'Doubtful'}</span>`);
+  else chips.push(`<span class="pl-chip bad">❌ ${({i:'Injured', s:'Suspended', u:'Unavailable', n:'Not in squad'})[p.status] || 'Unavailable'}${p.chance != null ? ' · ' + p.chance + '%' : ''}</span>`);
+  if (d.bgw) chips.push(`<span class="pl-chip bad">Blank GW${m.nextGW}</span>`);
+  else {
+    const fxTxt = d.fx.map(x => `${oppShort(x.opp)} (${x.home ? 'H' : 'A'}) FDR ${x.fdr}`).join(' + ');
+    chips.push(`<span class="pl-chip info">GW${m.nextGW}${d.dgw ? ' DOUBLE' : ''}: ${fxTxt}</span>`);
+  }
+  if (d.pen) chips.push('<span class="pl-chip ok">Pens 1st</span>');
+  if (d.spc) chips.push('<span class="pl-chip ok">Set pieces 1st</span>');
+  if (p.mins < 300) chips.push('<span class="pl-chip warn">Small sample: under 300 mins</span>');
+  if (d.ops > 1.5) chips.push(`<span class="pl-chip warn">Overperforming xG ×${d.ops.toFixed(2)}</span>`);
+  const line = `£${(p.cost / 10).toFixed(1)}m · ${p.sel}% owned · ${p.pts} pts · ${p.goals}G ${p.assists}A · ${p.mins} mins${p.starts != null ? ' (' + p.starts + ' starts)' : ''}`;
+  const news = p.news ? `<div style="color:#f5d27a;margin-top:2px;">📰 ${p.news.replace(/</g, '&lt;')}</div>` : '';
+  return `<div>${line}</div><div>${chips.join('')}</div>${news}`;
+}
+
+function setSlider(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value = val;
+  el.dispatchEvent(new Event('input'));
+}
+
+function fillPlayer(target, p) {
+  const d = derivePlayer(p);
+  const m = FPL.meta;
+  if (target === 'eval') {
+    document.getElementById('p1name').value = p.name;
+    document.getElementById('p1pos').value = d.pos;
+    updatePositionMode(1);
+    setSlider('m_form', p.form);
+    setSlider('m_xg', p.xg90);
+    setSlider('m_xa', p.xa90);
+    setSlider('m_xgc', p.xgc90);
+    setSlider('m_mins', d.minsPct);
+    setSlider('m_ops', d.ops);
+    setSlider('m_h2h', 0.5);
+    document.getElementById('m_pen').checked = d.pen;
+    document.getElementById('m_spc').checked = d.spc;
+    document.getElementById('m_dgw').checked = d.dgw;
+    document.getElementById('m_bgw').checked = d.bgw;
+    document.getElementById('m_rot').checked = false;
+    document.getElementById('m_ret').checked = false;
+    document.getElementById('m_venue').value = d.home ? 'home' : 'away';
+    setFDR(d.fdr);
+    if (m.nextGW) document.getElementById('gw-input').value = m.nextGW;
+    // Prime Auto H2H with this fixture
+    const h2hBtn = document.getElementById('h2h-auto-btn');
+    const h2hPanel = document.getElementById('h2h-result-panel');
+    if (d.first) {
+      const opp = oppShort(d.first.opp).replace(/'/g, '');
+      currentFixtureHome   = d.home ? p.teamShort : opp;
+      currentFixtureAway   = d.home ? opp : p.teamShort;
+      currentFixtureIsHome = d.home;
+      if (h2hBtn) h2hBtn.style.display = 'inline-block';
+      setFixtureStatus(`✓ From FPL: GW${m.nextGW} ${currentFixtureHome} vs ${currentFixtureAway} · ${d.home ? '🏠 Home' : '✈️ Away'} · FDR ${d.fdr}${d.dgw ? ' · DOUBLE' : ''}. Press Auto H2H for the H2H score.`, '#00ff87');
+    } else {
+      if (h2hBtn) h2hBtn.style.display = 'none';
+      currentFixtureHome = ''; currentFixtureAway = '';
+      setFixtureStatus(`Blank gameweek: ${p.teamShort} have no fixture in GW${m.nextGW}.`, '#f0a500');
+    }
+    if (h2hPanel) h2hPanel.innerHTML = '';
+    document.getElementById('pl-info-eval').innerHTML = playerInfoHtml(p, d);
+    renderBreakdown();
+  } else {
+    const pre = target; // 'a' or 'b'
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+    const chk = (id, v) => { const el = document.getElementById(id); if (el) el.checked = v; };
+    set(`c_${pre}_name`, p.name);
+    set(`c_${pre}_pos`, d.pos);
+    set(`c${pre}_form`, p.form);
+    set(`c${pre}_xg`, p.xg90);
+    set(`c${pre}_xa`, p.xa90);
+    set(`c${pre}_xgc`, p.xgc90);
+    set(`c${pre}_ops`, d.ops);
+    set(`c${pre}_fdr`, d.fdr);
+    set(`c${pre}_mins`, d.minsPct);
+    set(`c${pre}_h2h`, 0.5);
+    chk(`c${pre}_home`, d.home);
+    chk(`c${pre}_dgw`, d.dgw);
+    chk(`c${pre}_bgw`, d.bgw);
+    chk(`c${pre}_rot`, false);
+    chk(`c${pre}_pen`, d.pen);
+    chk(`c${pre}_spc`, d.spc);
+    document.getElementById(`pl-info-${pre}`).innerHTML = playerInfoHtml(p, d);
+  }
+}
+
+// ============================================================
+// MY TEAM (Phase 2) — squad, sell list, buy list, fixture run
+// ============================================================
+const MT = { data: null, loading: false, selected: null, rows: [] };
+const FDR_MULT = {1:1.25, 2:1.15, 3:1.0, 4:0.85, 5:0.7};
+
+try { const e = localStorage.getItem('fpl_entry_id'); if (e) document.getElementById('mt-entry').value = e; } catch(_) {}
+
+function mtStatus(msg, color) {
+  const el = document.getElementById('mt-status');
+  el.innerHTML = msg; el.style.color = color || '#8b949e';
+}
+
+function loadMyTeam(force) {
+  const entry = (document.getElementById('mt-entry').value || '').replace(/[^0-9]/g, '');
+  if (!entry) { mtStatus('Enter your FPL entry ID', '#f0a500'); return; }
+  try { localStorage.setItem('fpl_entry_id', entry); } catch(_) {}
+  MT.loading = true;
+  mtStatus('Loading players and fixtures…');
+  ensurePlayers(() => {
+    mtStatus('Loading your team from FPL…');
+    jsonpCall({ action: 'getMyTeam', entry }, res => {
+      MT.loading = false;
+      MT.data = res;
+      MT.ftBase = null;
+      loadPending();
+      MT.selected = null;
+      document.getElementById('mt-repl-card').style.display = 'none';
+      const t = new Date(res.updated).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+      mtStatus(`✓ Loaded · FPL data ${t}`, '#00ff87');
+      renderMyTeam();
+    }, err => {
+      MT.loading = false;
+      mtStatus('⚠ ' + err + (String(err).includes('action') ? ' — has Code.gs been redeployed?' : ''), '#ff6b6b');
+    }, 90000);
+  });
+  setTimeout(() => { if (MT.loading && !FPL && !playersLoading) { MT.loading = false; mtStatus('⚠ Could not load FPL players — press Load again', '#ff6b6b'); } }, 95000);
+}
+
+// FPL chance of playing next GW as 0–1
+function availNext(p) {
+  if (p.status === 'a' || !p.status) return 1;
+  if (p.chance != null) return p.chance / 100;
+  return p.status === 'd' ? 0.75 : 0;
+}
+
+// Projected points for one player in one gameweek (rule of thumb — see Guide)
+function projGW(p, d, gw, idx) {
+  const m = FPL.meta;
+  const fx = ((m.fixRun || {})[p.team] || {})[gw] || [];
+  if (!fx.length) return 0;
+  const playShare = clamp(d.minsPct / 90, 0, 1);
+  const base = 0.5 * (p.form || 0) + 0.5 * (p.ppg || 0) * playShare;
+  let avail = 1;
+  if (idx === 0) {
+    avail = availNext(p);
+  } else {
+    if (p.status === 'i' || p.status === 's') avail = 0.5;
+    else if (p.status === 'u' || p.status === 'n') avail = 0;
+  }
+  return fx.reduce((s, f) => s + base * (FDR_MULT[f.fdr] || 1) * (f.home ? 1.05 : 0.95), 0) * avail;
+}
+
+function playerOutlook(p) {
+  const d = derivePlayer(p);
+  const gws = FPL.meta.runGWs || [];
+  const per = gws.map((g, i) => projGW(p, d, g, i));
+  const proj5 = per.reduce((a, b) => a + b, 0);
+  const next = calcScore({
+    decision: 'transfer', pos: d.pos, form: p.form, xg: p.xg90, xa: p.xa90, xgc: p.xgc90,
+    fdr: d.fdr, mins: d.minsPct, h2h: 0.5, mgr: 0.33, home: d.home, dgw: d.dgw, bgw: d.bgw,
+    pen: d.pen, spc: d.spc, rot: false, ret: false, ops: d.ops
+  }).score;
+  return { d, per, proj5, next: Math.round(next * availNext(p)) };
+}
+
+function fxCells(p) {
+  const m = FPL.meta;
+  return (m.runGWs || []).map(g => {
+    const fx = ((m.fixRun || {})[p.team] || {})[g] || [];
+    if (!fx.length) return `<span class="fx-cell fx-blank" title="GW${g}: blank">—</span>`;
+    return fx.map(f => `<span class="fx-cell fdr-${f.fdr}" title="GW${g}: ${oppShort(f.opp)} ${f.home ? 'home' : 'away'}, FDR ${f.fdr}">${oppShort(f.opp)}${f.home ? '' : ''}<br>${f.home ? 'H' : 'A'}</span>`).join('');
+  }).join('');
+}
+
+function statusDot(p) {
+  if (p.status === 'a' || !p.status) return '';
+  const pct = p.chance != null ? p.chance + '%' : '';
+  const cls = p.status === 'd' ? 'warn' : 'bad';
+  return ` <span class="pl-chip ${cls}" title="${(p.news || '').replace(/"/g, '&quot;')}">${p.status === 'd' ? '⚠' : '❌'} ${pct}</span>`;
+}
+
+function mtFT() { return parseInt((document.getElementById('mt-ft') || {}).value || '1'); }
+
+function renderMyTeam() {
+  const r = MT.data, m = FPL.meta;
+  const byId = {}; FPL.players.forEach(p => byId[p.id] = p);
+  MT.rows = effectivePicks().map(pk => {
+    const p = byId[pk.id];
+    if (!p) return null;
+    return Object.assign({ p, pk }, playerOutlook(p));
+  }).filter(Boolean);
+  MT.rows.sort((a, b) => a.proj5 - b.proj5);
+
+  const ftBase = MT.ftBase != null ? MT.ftBase : r.ftEstimate;
+  const ftOpts = [0,1,2,3,4,5].map(n => `<option value="${n}" ${n === ftBase ? 'selected' : ''}>${n}</option>`).join('');
+  const nPend = MT.pending.length;
+  const ftLeft = mtFT();
+  const pendHits = Math.max(0, nPend - ftBase);
+  const recent = (r.recent || []).map(h => `GW${h.gw} ${h.pts}${h.hit ? ' (−' + h.hit + ')' : ''}`).join(' · ');
+  document.getElementById('mt-head').innerHTML = `
+    <div class="mt-head">
+      <div class="mt-stat"><div class="k">Team</div><div class="v">${escapeHtml(r.teamName)}</div></div>
+      <div class="mt-stat"><div class="k">Overall rank</div><div class="v">${r.overallRank ? r.overallRank.toLocaleString('en-GB') : '—'}</div></div>
+      <div class="mt-stat"><div class="k">Points</div><div class="v">${r.overallPoints ?? '—'}</div></div>
+      <div class="mt-stat"><div class="k">Bank${nPend ? ' (after pending)' : ''}</div><div class="v">£${(mtBank() / 10).toFixed(1)}m</div></div>
+      <div class="mt-stat"><div class="k">Free transfers (est.)${nPend ? ' before pending' : ''}</div><div class="v"><select id="mt-ft" onchange="MT.ftBase=parseInt(this.value);savePending();renderMyTeam();renderReplacements()">${ftOpts}</select></div></div>
+      ${nPend ? `<div class="mt-stat"><div class="k">Free transfers left</div><div class="v">${ftLeft}${pendHits ? ` <span style="color:#ff6b6b;font-size:0.8rem;">(−${pendHits * 4} hit)</span>` : ''}</div></div>` : ''}
+      <div class="mt-stat"><div class="k">Squad as at</div><div class="v">GW${r.squadGW} deadline</div></div>
+    </div>
+    <div style="font-size:0.72rem;color:#8b949e;margin:-4px 0 12px;">Last 5: ${recent || '—'}. Projections cover GW${(m.runGWs || [])[0]}–GW${(m.runGWs || []).slice(-1)[0]}.${r.activeChip ? ' Chip active in GW' + r.squadGW + ': ' + r.activeChip + '.' : ''}</div>`;
+
+  renderChipSync();
+  renderPending();
+
+  const posName = {gkp:'GKP', def:'DEF', mid:'MID', fwd:'FWD'};
+  const rows = MT.rows.map((x, i) => {
+    const p = x.p, pk = x.pk;
+    const tag = i < 3 ? '<span class="sell-tag">SELL?</span>' : '';
+    const role = pk.cap ? ' <strong style="color:#f0a500;">(C)</strong>' : pk.vice ? ' <span style="color:#8b949e;">(V)</span>' : '';
+    const bench = (pk.slot > 11 ? ' <span style="color:#555;font-size:0.66rem;">bench</span>' : '') + (pk.pending ? ' <span class="new-tag">NEW</span>' : '');
+    return `<tr class="${MT.selected === p.id ? 'sel' : ''}" style="cursor:pointer;" onclick="selectSell(${p.id})">
+      <td>${tag}</td>
+      <td><strong>${escapeHtml(p.name)}</strong>${role}${bench}${statusDot(p)}</td>
+      <td>${p.teamShort}</td><td>${posName[x.d.pos]}</td>
+      <td class="num">£${(pk.sell / 10).toFixed(1)}m${pk.buyEst ? ' <span style="color:#555;">est.</span>' : ''}</td>
+      <td class="num">${p.form.toFixed(1)}</td>
+      <td class="num" style="color:${grade(x.next).color};font-weight:700;">${x.next}</td>
+      <td class="num" style="font-weight:800;">${x.proj5.toFixed(1)}</td>
+      <td style="white-space:nowrap;">${fxCells(p)}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('mt-squad').innerHTML = `
+    <table class="mt-table">
+      <thead><tr><th></th><th>Player</th><th>Club</th><th>Pos</th><th class="num">Sell price</th><th class="num">Form</th><th class="num" title="Dashboard score for next GW (Transfer weights), scaled by FPL chance of playing">Next GW</th><th class="num" title="Projected points over the next 5 gameweeks">5-GW pts</th><th>Next 5 fixtures</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="font-size:0.7rem;color:#555;margin-top:8px;">Sorted weakest first by 5-GW projected points. Click a player for replacements.</div>`;
+}
+
+function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function selectSell(id) {
+  MT.selected = id;
+  renderMyTeam();
+  renderReplacements();
+  document.getElementById('mt-repl-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderReplacements() {
+  if (!MT.selected) return;
+  const out = MT.rows.find(x => x.p.id === MT.selected);
+  if (!out) return;
+  const r = MT.data;
+  const bankNow = mtBank();
+  const budget = out.pk.sell + bankNow;
+  const ownIds = new Set(MT.rows.map(x => x.p.id));
+  const clubCount = {};
+  MT.rows.forEach(x => { if (x.p.id !== out.p.id) clubCount[x.p.team] = (clubCount[x.p.team] || 0) + 1; });
+  const fitOnly = document.getElementById('mt-fit').checked;
+  const minMins = parseInt(document.getElementById('mt-minmins').value) || 0;
+  const nTr = parseInt(document.getElementById('mt-ntr').value) || 1;
+  const hits = Math.max(0, nTr - mtFT());
+  const hitCost = hits * 4;
+
+  const cands = FPL.players.filter(p =>
+    p.pos === out.p.pos && !ownIds.has(p.id) && p.cost <= budget &&
+    (clubCount[p.team] || 0) < 3 &&
+    (!fitOnly || p.status === 'a')
+  ).map(p => Object.assign({ p }, playerOutlook(p)))
+   .filter(x => x.d.minsPct >= minMins)
+   .sort((a, b) => b.proj5 - a.proj5)
+   .slice(0, 12);
+
+  document.getElementById('mt-repl-card').style.display = 'block';
+  document.getElementById('mt-repl-title').innerHTML =
+    `Replacing ${escapeHtml(out.p.name)} <span style="font-size:0.72rem;color:#8b949e;font-weight:600;text-transform:none;letter-spacing:0;">· budget £${(budget / 10).toFixed(1)}m (sell £${(out.pk.sell / 10).toFixed(1)}m + bank £${(bankNow / 10).toFixed(1)}m) · his 5-GW: ${out.proj5.toFixed(1)} pts${hits ? ` · <span style="color:#ff6b6b;">${hits} hit${hits > 1 ? 's' : ''} = −${hitCost}</span>` : ''}</span>`;
+
+  if (!cands.length) { document.getElementById('mt-repl').innerHTML = '<p style="color:#8b949e;font-size:0.8rem;">No one fits the budget and filters. Try lowering the minutes filter or unticking the fitness filter.</p>' + manualRecordHtml(out); return; }
+
+  const rows = cands.map(x => {
+    const p = x.p;
+    const gain = x.proj5 - out.proj5;
+    const net = gain - hitCost;
+    const verdict = net >= 6 ? '✅ Strong' : net >= 3 ? '✅ Worth it' : net >= 0 ? '⚠️ Marginal' : '❌ No';
+    return `<tr>
+      <td><strong>${escapeHtml(p.name)}</strong>${statusDot(p)}</td>
+      <td>${p.teamShort}</td>
+      <td class="num">£${(p.cost / 10).toFixed(1)}m</td>
+      <td class="num">${p.form.toFixed(1)}</td>
+      <td class="num">${p.sel}%</td>
+      <td class="num" style="color:${grade(x.next).color};font-weight:700;">${x.next}</td>
+      <td class="num" style="font-weight:800;">${x.proj5.toFixed(1)}</td>
+      <td class="num ${net >= 0 ? 'gain-pos' : 'gain-neg'}">${net >= 0 ? '+' : ''}${net.toFixed(1)}</td>
+      <td style="white-space:nowrap;font-size:0.72rem;">${verdict}</td>
+      <td style="white-space:nowrap;">${fxCells(p)}</td>
+      <td style="white-space:nowrap;"><button class="chip-btn" style="margin:0;" onclick="mtCompare(${out.p.id},${p.id})">⚖️ Compare</button>
+        <button class="chip-btn" style="margin:0 0 0 4px;" title="Record this as a transfer you've made for GW${MT.data.nextGW}" onclick="recordTransfer(${out.p.id},${p.id})">✓ Made it</button></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('mt-repl').innerHTML = `
+    <table class="mt-table">
+      <thead><tr><th>Player</th><th>Club</th><th class="num">Price</th><th class="num">Form</th><th class="num">Owned</th><th class="num">Next GW</th><th class="num">5-GW pts</th><th class="num" title="5-GW projection gain minus 4 per hit">Net gain</th><th>Verdict</th><th>Next 5 fixtures</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="font-size:0.7rem;color:#555;margin-top:8px;">Same position, affordable, max three per club. Verdict on net gain: +6 or more Strong · +3 Worth it · 0 to +3 Marginal · below 0 No. A rule of thumb: gains under ~3 are within the noise.</div>
+    ${manualRecordHtml(out)}`;
+}
+
+function mtCompare(outId, inId) {
+  const byId = {}; FPL.players.forEach(p => byId[p.id] = p);
+  fillPlayer('a', byId[outId]);
+  fillPlayer('b', byId[inId]);
+  document.getElementById('casearch').value = byId[outId].label;
+  document.getElementById('cbsearch').value = byId[inId].label;
+  const ft = mtFT();
+  const sel = document.getElementById('c_ft') || document.querySelector('#tab-compare select[id*="ft"]');
+  if (sel) { const v = String(Math.min(ft, 2)); if ([...sel.options].some(o => o.value === v)) sel.value = v; }
+  switchTab('compare');
+}
+
+function mtSendToXI() {
+  if (!MT.rows.length) { alert('Load your team first.'); return; }
+  if (xiSquad.length && !confirm('Replace the ' + xiSquad.length + ' players currently in the Starting XI tab with your FPL squad?')) return;
+  xiSquad = MT.rows.map(x => {
+    const s = calcScore({
+      decision: 'starting_xi', pos: x.d.pos, form: x.p.form, xg: x.p.xg90, xa: x.p.xa90, xgc: x.p.xgc90,
+      fdr: x.d.fdr, mins: x.d.minsPct, h2h: 0.5, mgr: 0.33, home: x.d.home, dgw: x.d.dgw, bgw: x.d.bgw,
+      pen: x.d.pen, spc: x.d.spc, rot: false, ret: false, ops: x.d.ops
+    }).score;
+    return { name: x.p.name, pos: x.d.pos, score: s, doubt: x.p.status !== 'a' };
+  });
+  renderXISquad();
+  switchTab('xi');
+}
+
+const CHIP_NAME_MAP = { wildcard: 'wc', freehit: 'fh', '3xc': 'tc', bboost: 'bb' };
+function renderChipSync() {
+  const el = document.getElementById('mt-chipsync');
+  const chips = (MT.data && MT.data.chips) || [];
+  if (!chips.length) { el.innerHTML = ''; return; }
+  const items = chips.map(c => {
+    const k = CHIP_NAME_MAP[c.name];
+    const id = k ? k + (c.event <= 19 ? '1' : '2') : null;
+    return { c, id };
+  });
+  const pending = items.filter(i => i.id && !(chipStates[i.id] || {}).used);
+  const list = items.map(i => `${i.id ? CHIP_DEFS.find(d => d.key === i.id.slice(0, 2)).name : i.c.name} (GW${i.c.event})`).join(', ');
+  el.innerHTML = `<div class="notice" style="margin-bottom:12px;font-size:0.76rem;">FPL shows chips played: <strong>${list}</strong>.
+    ${pending.length ? `<button class="chip-btn" style="margin:0 0 0 8px;" onclick="syncChipsFromFPL()">Update Chip Planner</button>` : '<span style="color:#00ff87;">Chip Planner is up to date.</span>'}</div>`;
+}
+function syncChipsFromFPL() {
+  (MT.data.chips || []).forEach(c => {
+    const k = CHIP_NAME_MAP[c.name];
+    if (!k) return;
+    chipStates[k + (c.event <= 19 ? '1' : '2')] = { used: true, gw: c.event };
+  });
+  saveChipStates();
+  renderChips();
+  renderChipSync();
+}
+
+// ── Pending transfers (made this week, not yet public) ──
+MT.pending = [];
+MT.ftBase = null;
+function pendKey() { return 'fpl_pending_' + MT.data.entryId; }
+function loadPending() {
+  MT.pending = [];
+  try {
+    const o = JSON.parse(localStorage.getItem(pendKey()) || 'null');
+    if (o && o.gw === MT.data.nextGW && Array.isArray(o.list)) { MT.pending = o.list; if (o.ftBase != null) MT.ftBase = o.ftBase; }
+    else localStorage.removeItem(pendKey());   // new gameweek: FPL now shows the real squad
+  } catch(_) {}
+}
+function savePending() {
+  try { localStorage.setItem(pendKey(), JSON.stringify({ gw: MT.data.nextGW, list: MT.pending, ftBase: MT.ftBase })); } catch(_) {}
+}
+function fplById() { const o = {}; FPL.players.forEach(p => o[p.id] = p); return o; }
+function effectivePicks() {
+  const byId = fplById();
+  const picks = MT.data.picks.map(x => Object.assign({}, x));
+  MT.pending.forEach(t => {
+    const i = picks.findIndex(pk => pk.id === t.out);
+    if (i < 0) return;
+    const inP = byId[t.in];
+    const c = inP ? inP.cost : 0;
+    picks[i] = { id: t.in, slot: picks[i].slot, cap: false, vice: false, buy: c, sell: c, buyEst: false, pending: true };
+  });
+  return picks;
+}
+function mtBank() {
+  if (!MT.data) return 0;
+  const byId = fplById();
+  return MT.pending.reduce((b, t) => b + (t.sellOut || 0) - ((byId[t.in] || {}).cost || 0), MT.data.bank);
+}
+// Free transfers left after pending ones (overrides the earlier definition)
+mtFT = function() {
+  const base = MT.ftBase != null ? MT.ftBase : (MT.data ? MT.data.ftEstimate : 1);
+  return Math.max(0, base - MT.pending.length);
+};
+function recordTransfer(outId, inId) {
+  const byId = fplById();
+  const row = MT.rows.find(x => x.p.id === outId);
+  const inP = byId[inId];
+  if (!row || !inP) return;
+  if (inP.pos !== row.p.pos) { alert('Position mismatch: ' + inP.name + ' is not a ' + POS_NAME[row.p.pos] + '.'); return; }
+  if (MT.rows.some(x => x.p.id === inId)) { alert(inP.name + ' is already in your squad.'); return; }
+  const bankAfter = mtBank() + row.pk.sell - inP.cost;
+  if (bankAfter < 0 && !confirm('This leaves the bank at £' + (bankAfter / 10).toFixed(1) + 'm, which FPL would not allow. Record it anyway?')) return;
+  MT.pending.push({ out: outId, in: inId, sellOut: row.pk.sell, outName: row.p.name, inName: inP.name });
+  savePending();
+  MT.selected = null;
+  document.getElementById('mt-repl-card').style.display = 'none';
+  renderMyTeam();
+  document.getElementById('mt-pending').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function undoPending(i) {
+  MT.pending.splice(i, 1);
+  savePending();
+  renderMyTeam();
+  if (MT.selected) renderReplacements();
+}
+function clearPending() {
+  if (!confirm('Clear all pending transfers?')) return;
+  MT.pending = [];
+  savePending();
+  renderMyTeam();
+}
+function renderPending() {
+  const el = document.getElementById('mt-pending');
+  if (!MT.pending.length) { el.innerHTML = ''; return; }
+  const byId = fplById();
+  const rows = MT.pending.map((t, i) => {
+    const inP = byId[t.in] || {};
+    return `<div class="pend-row">
+      <span>❌ <strong>${escapeHtml(t.outName)}</strong> (£${(t.sellOut / 10).toFixed(1)}m)</span>
+      <span>→</span>
+      <span>✅ <strong>${escapeHtml(t.inName)}</strong> (£${((inP.cost || 0) / 10).toFixed(1)}m)</span>
+      <button class="chip-btn" style="margin:0;" onclick="undoPending(${i})">Undo</button>
+    </div>`;
+  }).join('');
+  el.innerHTML = `<div class="pend-box">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+      <span><strong>Pending GW${MT.data.nextGW} transfers</strong> · saved in this browser, cleared automatically after the deadline</span>
+      <span class="guide-link" style="font-size:0.7rem;" onclick="clearPending()">clear all</span>
+    </div>${rows}</div>`;
+}
+function manualRecordHtml(out) {
+  return `<div style="margin-top:14px;padding-top:12px;border-top:1px solid #21262d;display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:0.76rem;color:#8b949e;">
+    <span>Already bought someone else for ${escapeHtml(out.p.name)}?</span>
+    <input type="text" list="fpl-player-list" id="mt-manual-in" placeholder="Type a surname…" autocomplete="off" style="width:260px;padding:5px 8px;">
+    <button class="chip-btn" style="margin:0;" onclick="recordManual(${out.p.id})">✓ Record transfer</button>
+  </div>`;
+}
+function recordManual(outId) {
+  const v = document.getElementById('mt-manual-in').value;
+  const p = FPL.byLabel[v];
+  if (!p) { alert('Pick a player from the list as you type.'); return; }
+  recordTransfer(outId, p.id);
+}
+</script>
+</body>
+</html>
